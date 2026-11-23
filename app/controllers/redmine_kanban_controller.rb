@@ -63,7 +63,10 @@ class RedmineKanbanController < ApplicationController
       unless allowed.include?(status)
         return fail_move(l(:redmine_kanban_transition_denied))
       end
-      issue.init_journal(User.current)
+      issue.init_journal(User.current, detail_notes)
+      detail_error = apply_detail(issue)
+      return fail_move(detail_error) if detail_error
+
       issue.status = status
       unless issue.save
         return fail_move(issue.errors.full_messages.join(', '))
@@ -71,7 +74,15 @@ class RedmineKanbanController < ApplicationController
     end
 
     if request.xhr?
-      render :json => {:ok => true}
+      issue.reload
+      render :json => {
+        :ok => true,
+        :assigned_to_id => issue.assigned_to_id,
+        :assigned_to_name => issue.assigned_to ? issue.assigned_to.name.to_s : '',
+        :done_ratio => issue.done_ratio.to_i,
+        :start_date => issue.start_date ? issue.start_date.strftime('%Y-%m-%d') : '',
+        :due_date => issue.due_date ? issue.due_date.strftime('%Y-%m-%d') : ''
+      }
     else
       redirect_to(show_location)
     end
@@ -257,6 +268,64 @@ class RedmineKanbanController < ApplicationController
       list << issue.status unless list.include?(issue.status)
       list
     end
+  end
+
+  def detail_requested?
+    params[:detail].to_s == '1'
+  end
+
+  def detail_notes
+    return '' unless detail_requested?
+
+    notes = params[:notes].to_s.gsub(/\r\n?/, "\n").strip
+    notes = notes.encode('UTF-8', :invalid => :replace, :undef => :replace)
+    notes[0, 10000].to_s
+  rescue StandardError
+    ''
+  end
+
+  def apply_detail(issue)
+    return nil unless detail_requested?
+
+    attrs = {}
+    if params.key?(:assigned_to_id)
+      raw = params[:assigned_to_id].to_s
+      if raw.blank?
+        attrs['assigned_to_id'] = ''
+      elsif raw.match?(/\A\d+\z/) && assignable_principal?(issue, raw.to_i)
+        attrs['assigned_to_id'] = raw
+      end
+    end
+    if params[:done_ratio].to_s.match?(/\A\d+\z/)
+      ratio = params[:done_ratio].to_i
+      attrs['done_ratio'] = ratio.to_s if ratio <= 100
+    end
+    %w[start_date due_date].each do |field|
+      next unless params.key?(field)
+
+      parsed = kanban_date(params[field])
+      return l(:redmine_kanban_invalid_date) if parsed == :invalid
+
+      attrs[field] = parsed.nil? ? '' : parsed.to_s
+    end
+    issue.safe_attributes = attrs unless attrs.empty?
+    nil
+  end
+
+  def assignable_principal?(issue, id)
+    ids = @project.assignable_users.map(&:id)
+    ids << issue.assigned_to_id if issue.assigned_to_id
+    ids.include?(id)
+  end
+
+  def kanban_date(value)
+    text = value.to_s.strip
+    return nil if text.blank?
+    return :invalid unless text.match?(/\A\d{4}-\d{2}-\d{2}\z/)
+
+    Date.iso8601(text)
+  rescue ArgumentError
+    :invalid
   end
 
   def fail_move(message)

@@ -6,7 +6,7 @@ Her projeye Kanban sekmesi ekler. Sütunlar iş durumları, kartlar işlerdir.
 
 ## Yenilikler
 
-* 0.2.0: Sorgu seçimi, durum ayarı ve paylaşılabilen kısayollar. Ayrıntılar [CHANGELOG](CHANGELOG.md) dosyasında.
+* 0.3.0: Durum değişirken atanan, not, tarihler ve tamamlanma oranı sorulabilir. Ayrıntılar [CHANGELOG](CHANGELOG.md) dosyasında.
 
 ## Ne yapar
 
@@ -16,6 +16,7 @@ Her projeye Kanban sekmesi ekler. Sütunlar iş durumları, kartlar işlerdir.
 * Görünüm kısayol olarak kaydedilir. Sorgularla aynı şekilde düzenlenir, silinir ve görünürlüğü değiştirilir: yalnızca bana, herkese veya seçilen rollere. Tüm projelerde de kullanılabilir.
 * Kısayollar sağ menüde durur. Kaydetme izni, sorgu kaydetme izniyle aynıdır. Herkese veya rollere açmak, genel sorgu yönetme iznini ister.
 * Kartı başka sütuna sürükleyince durum değişir. İş akışı ve düzenleme izni kontrol edilir.
+* "Durum değişirken sor" açıksa atanan, not, tarihler ve tamamlanma oranı sorulur. Kapalıyken durum doğrudan değişir.
 * Eşleşen işlerden en son güncellenen 400 tanesi gösterilir.
 
 ## Redmine sürümü
@@ -44,6 +45,8 @@ docker restart redmine-redmine-1
 Bir projeyi açın. Kanban sekmesi İşler sekmesinin yanındadır. Sorgu ve durum seçip Kısa yola ekle deyin.
 
 ## Güncelleme
+
+0.3.0 yeni bir göç eklemez. 0.2.0 göçü yapıldıysa çekip yeniden başlatmak yeter. Aşağıdaki göç komutu tekrar çalıştırılabilir.
 
 ```bash
 cd /home/niltek/redmine/app/plugins/Redmine.Kanban

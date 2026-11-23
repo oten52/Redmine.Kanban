@@ -15,6 +15,12 @@ en:
   redmine_kanban_move: Move
   redmine_kanban_empty: This column is empty
   redmine_kanban_help: Drag a card to another column, or choose a status and move it.
+  redmine_kanban_detail_switch: Ask when the status changes
+  redmine_kanban_detail_help: "When on, assignee, notes, dates and done ratio are asked. When off, the status changes directly."
+  redmine_kanban_detail_title: Status change
+  redmine_kanban_detail_status: New status
+  redmine_kanban_cancel: Cancel
+  redmine_kanban_invalid_date: Enter the date as year-month-day.
   redmine_kanban_truncated: "Only the 400 most recently updated issues are shown. Narrow the filters to see a smaller set."
   redmine_kanban_none: No issues match these filters.
   redmine_kanban_transition_denied: The workflow does not allow this status change.

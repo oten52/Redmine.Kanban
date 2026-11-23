@@ -15,6 +15,12 @@ tr:
   redmine_kanban_move: Taşı
   redmine_kanban_empty: Bu sütun boş
   redmine_kanban_help: Kartı başka bir sütuna sürükleyin veya listeden durum seçip taşıyın.
+  redmine_kanban_detail_switch: Durum değişirken sor
+  redmine_kanban_detail_help: "Açıkken atanan, not, tarihler ve tamamlanma oranı sorulur. Kapalıyken durum doğrudan değişir."
+  redmine_kanban_detail_title: Durum değişikliği
+  redmine_kanban_detail_status: Yeni durum
+  redmine_kanban_cancel: Vazgeç
+  redmine_kanban_invalid_date: Tarih yılı-ay-gün biçiminde olmalıdır.
   redmine_kanban_truncated: "En son güncellenen 400 iş gösteriliyor. Daha dar bir liste için süzgeç kullanın."
   redmine_kanban_none: Bu süzgeçte iş yok.
   redmine_kanban_transition_denied: İş akışı bu durum değişikliğine izin vermiyor.

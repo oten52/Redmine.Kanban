@@ -37,6 +37,19 @@
   .kanban-move button { margin-top: 4px; }
   .kanban-empty, .kanban-none { color: #777; padding: 8px; }
   .kanban-muted { color: #6b7280; }
+  .kanban-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 0 0 12px; }
+  .kanban-switch label { font-weight: 600; margin: 0; }
+  .kanban-switch span { color: #667; font-size: 13px; }
+  .kanban-modal { position: fixed; top: 0; right: 0; bottom: 0; left: 0; background: rgba(16, 24, 40, 0.48); z-index: 2000; overflow: auto; }
+  .kanban-modal[hidden] { display: none; }
+  .kanban-dialog { background: #fff; width: 460px; max-width: calc(100% - 32px); margin: 8vh auto 32px; padding: 18px 20px 16px; border-radius: 10px; box-shadow: 0 16px 40px rgba(16, 24, 40, 0.2); }
+  .kanban-dialog h3 { margin: 0 0 6px; }
+  .kanban-dialog label { display: block; margin: 0 0 10px; font-size: 13px; font-weight: 600; }
+  .kanban-dialog input, .kanban-dialog select, .kanban-dialog textarea { display: block; width: 100%; margin-top: 4px; box-sizing: border-box; font-weight: normal; }
+  .kanban-dialog textarea { min-height: 88px; }
+  .kanban-dialog-dates { display: flex; gap: 12px; }
+  .kanban-dialog-dates label { flex: 1; }
+  .kanban-dialog-actions { display: flex; gap: 8px; margin-top: 4px; }
 </style>
 
 <div class="contextual">
@@ -140,6 +153,13 @@
 
 <% if @can_edit %>
   <p class="kanban-help"><%= l(:redmine_kanban_help) %></p>
+  <p class="kanban-switch">
+    <label>
+      <input type="checkbox" id="kanban-detail-switch">
+      <%= l(:redmine_kanban_detail_switch) %>
+    </label>
+    <span><%= l(:redmine_kanban_detail_help) %></span>
+  </p>
 <% end %>
 
 <% if @issues.empty? %>
@@ -163,7 +183,7 @@
             <p class="kanban-empty"><%= l(:redmine_kanban_empty) %></p>
           <% end %>
           <% cards.each do |issue| %>
-            <article class="kanban-card" draggable="<%= @can_edit ? 'true' : 'false' %>" data-issue-id="<%= issue.id %>">
+            <article class="kanban-card" draggable="<%= @can_edit ? 'true' : 'false' %>" data-issue-id="<%= issue.id %>" data-assigned-to="<%= issue.assigned_to_id %>" data-assigned-name="<%= issue.assigned_to ? issue.assigned_to.name : '' %>" data-done-ratio="<%= issue.done_ratio.to_i %>" data-start-date="<%= issue.start_date %>" data-due-date="<%= issue.due_date %>">
               <div class="kanban-card-top">
                 <span class="kanban-tracker"><%= issue.tracker.name %></span>
                 <%= link_to "##{issue.id}", issue_path(issue) %>
@@ -195,6 +215,47 @@
     <% end %>
   </div>
 </div>
+
+<% if @can_edit %>
+  <div id="kanban-detail" class="kanban-modal" hidden>
+    <form id="kanban-detail-form" class="kanban-dialog">
+      <h3><%= l(:redmine_kanban_detail_title) %></h3>
+      <p class="kanban-subject" id="kanban-detail-subject"></p>
+      <p><%= l(:redmine_kanban_detail_status) %> <strong id="kanban-detail-status"></strong></p>
+      <label for="kanban-detail-assigned">
+        <%= l(:field_assigned_to) %>
+        <select id="kanban-detail-assigned">
+          <option value=""><%= l(:redmine_kanban_unassigned) %></option>
+          <% @project.assignable_users.each do |principal| %>
+            <option value="<%= principal.id %>"><%= principal.name %></option>
+          <% end %>
+        </select>
+      </label>
+      <label for="kanban-detail-ratio">
+        <%= l(:field_done_ratio) %>
+        <input type="number" id="kanban-detail-ratio" min="0" max="100" step="10">
+      </label>
+      <div class="kanban-dialog-dates">
+        <label for="kanban-detail-start">
+          <%= l(:field_start_date) %>
+          <input type="date" id="kanban-detail-start">
+        </label>
+        <label for="kanban-detail-due">
+          <%= l(:field_due_date) %>
+          <input type="date" id="kanban-detail-due">
+        </label>
+      </div>
+      <label for="kanban-detail-notes">
+        <%= l(:field_notes) %>
+        <textarea id="kanban-detail-notes" maxlength="10000"></textarea>
+      </label>
+      <div class="kanban-dialog-actions">
+        <button type="submit"><%= l(:button_save) %></button>
+        <button type="button" id="kanban-detail-cancel"><%= l(:redmine_kanban_cancel) %></button>
+      </div>
+    </form>
+  </div>
+<% end %>
 
 <%= javascript_tag do %>
   (function() {
@@ -323,9 +384,198 @@
       }).then(function(response) {
         return response.json().then(function(data) {
           if (!response.ok || !data.ok) { throw new Error((data && data.error) || ''); }
+          return data || {};
         });
       });
     }
+
+    var detailSwitch = document.getElementById('kanban-detail-switch');
+    var detailBox = document.getElementById('kanban-detail');
+    var detailKey = 'redmine_kanban_detail';
+    var pending = null;
+    try {
+      if (detailSwitch && window.localStorage && localStorage.getItem(detailKey) === '1') {
+        detailSwitch.checked = true;
+      }
+    } catch (ignore) {}
+    if (detailSwitch) {
+      detailSwitch.addEventListener('change', function() {
+        try {
+          if (window.localStorage) {
+            localStorage.setItem(detailKey, detailSwitch.checked ? '1' : '0');
+          }
+        } catch (ignore) {}
+      });
+    }
+
+    function detailOn() {
+      return !!(detailSwitch && detailSwitch.checked && detailBox);
+    }
+
+    function columnFor(statusId) {
+      var columns = board.querySelectorAll('.kanban-column');
+      var wanted = String(statusId);
+      for (var i = 0; i < columns.length; i++) {
+        if (columns[i].getAttribute('data-status-id') === wanted) { return columns[i]; }
+      }
+      return null;
+    }
+
+    function statusLabel(column, selectEl) {
+      if (column) {
+        var strong = column.querySelector('strong');
+        if (strong) { return strong.textContent; }
+      }
+      if (selectEl && selectEl.selectedIndex >= 0) {
+        return selectEl.options[selectEl.selectedIndex].text;
+      }
+      return '';
+    }
+
+    function ensureAssignee(card) {
+      var select = document.getElementById('kanban-detail-assigned');
+      if (!select) { return; }
+      var extra = select.querySelector('option[data-extra="1"]');
+      if (extra) { extra.parentNode.removeChild(extra); }
+      var id = card.getAttribute('data-assigned-to') || '';
+      var found = false;
+      for (var i = 0; i < select.options.length; i++) {
+        if (select.options[i].value === id) { found = true; }
+      }
+      if (id && !found) {
+        var option = document.createElement('option');
+        option.value = id;
+        option.setAttribute('data-extra', '1');
+        option.textContent = card.getAttribute('data-assigned-name') || id;
+        select.appendChild(option);
+      }
+      select.value = id;
+    }
+
+    function askDetail(card, statusId, from, column, selectEl) {
+      if (pending && pending.selectEl && pending.from && pending.selectEl !== selectEl) {
+        pending.selectEl.value = pending.from.getAttribute('data-status-id');
+      }
+      pending = {
+        card: card,
+        statusId: String(statusId),
+        from: from,
+        column: column,
+        selectEl: selectEl
+      };
+      var subject = card.querySelector('.kanban-subject');
+      var subjectNode = document.getElementById('kanban-detail-subject');
+      var statusNode = document.getElementById('kanban-detail-status');
+      if (subjectNode) { subjectNode.textContent = subject ? subject.textContent : ''; }
+      if (statusNode) { statusNode.textContent = statusLabel(column, selectEl); }
+      ensureAssignee(card);
+      var ratio = document.getElementById('kanban-detail-ratio');
+      var start = document.getElementById('kanban-detail-start');
+      var due = document.getElementById('kanban-detail-due');
+      var notes = document.getElementById('kanban-detail-notes');
+      if (ratio) { ratio.value = card.getAttribute('data-done-ratio') || '0'; }
+      if (start) { start.value = card.getAttribute('data-start-date') || ''; }
+      if (due) { due.value = card.getAttribute('data-due-date') || ''; }
+      if (notes) { notes.value = ''; }
+      detailBox.hidden = false;
+      if (notes) { notes.focus(); }
+    }
+
+    function closeDetail(resetSelect) {
+      if (resetSelect && pending && pending.selectEl && pending.from) {
+        pending.selectEl.value = pending.from.getAttribute('data-status-id');
+      }
+      pending = null;
+      if (detailBox) { detailBox.hidden = true; }
+    }
+
+    function placeCard(item) {
+      var card = item.card;
+      var from = item.from;
+      var column = item.column;
+      var previous = card ? card.parentNode : null;
+      if (card && column && from !== column) {
+        column.querySelector('.kanban-cards').appendChild(card);
+        refresh(from);
+        refresh(column);
+      } else if (card && !column && from) {
+        card.parentNode.removeChild(card);
+        refresh(from);
+      }
+      return previous;
+    }
+
+    function paintCard(card, statusId, data) {
+      var statusSelect = card.querySelector('select.kanban-status');
+      if (statusSelect) { statusSelect.value = String(statusId); }
+      var name = card.querySelector('.kanban-meta span');
+      var assignedId = data && data.assigned_to_id ? String(data.assigned_to_id) : '';
+      var assignedName = data && data.assigned_to_name ? data.assigned_to_name : '';
+      if (!assignedName) {
+        var blank = document.querySelector('#kanban-detail-assigned option[value=""]');
+        assignedName = blank ? blank.text : '';
+      }
+      card.setAttribute('data-assigned-to', assignedId);
+      card.setAttribute('data-assigned-name', data && data.assigned_to_name ? data.assigned_to_name : '');
+      if (name) { name.textContent = assignedName; }
+      if (data) {
+        card.setAttribute('data-done-ratio', data.done_ratio == null ? '' : String(data.done_ratio));
+        card.setAttribute('data-start-date', data.start_date || '');
+        card.setAttribute('data-due-date', data.due_date || '');
+      }
+    }
+
+    function confirmDetail(event) {
+      event.preventDefault();
+      if (!pending || !pending.card) { return; }
+      var item = pending;
+      var assigned = document.getElementById('kanban-detail-assigned');
+      var ratio = document.getElementById('kanban-detail-ratio');
+      var start = document.getElementById('kanban-detail-start');
+      var due = document.getElementById('kanban-detail-due');
+      var notes = document.getElementById('kanban-detail-notes');
+      var previous = placeCard(item);
+      pending = null;
+      detailBox.hidden = true;
+      if (notice) { notice.style.display = 'none'; }
+      var body = new FormData();
+      body.append(tokenName, token);
+      body.append('issue_id', item.card.getAttribute('data-issue-id'));
+      body.append('status_id', item.statusId);
+      body.append('detail', '1');
+      body.append('assigned_to_id', assigned ? assigned.value : '');
+      body.append('done_ratio', ratio ? ratio.value : '');
+      body.append('start_date', start ? start.value : '');
+      body.append('due_date', due ? due.value : '');
+      body.append('notes', notes ? notes.value : '');
+      send(body).then(function(data) {
+        if (item.card.parentNode) { paintCard(item.card, item.statusId, data); }
+      }).catch(function(error) {
+        if (previous) { previous.appendChild(item.card); }
+        refresh(item.from);
+        refresh(item.column);
+        if (item.selectEl && item.from) {
+          item.selectEl.value = item.from.getAttribute('data-status-id');
+        }
+        showError(error.message);
+      });
+    }
+
+    var detailForm = document.getElementById('kanban-detail-form');
+    var detailCancel = document.getElementById('kanban-detail-cancel');
+    if (detailForm) { detailForm.addEventListener('submit', confirmDetail); }
+    if (detailCancel) {
+      detailCancel.addEventListener('click', function() { closeDetail(true); });
+    }
+    if (detailBox) {
+      detailBox.addEventListener('click', function(event) {
+        if (event.target === detailBox) { closeDetail(true); }
+      });
+    }
+    document.addEventListener('keydown', function(event) {
+      if (!detailBox || detailBox.hidden) { return; }
+      if (event.key === 'Escape' || event.keyCode === 27) { closeDetail(true); }
+    });
 
     board.addEventListener('dragstart', function(event) {
       var tag = event.target.tagName;
@@ -371,6 +621,10 @@
       if (!card) { return; }
       var from = ancestor(card, 'kanban-column');
       if (from === column) { return; }
+      if (detailOn()) {
+        askDetail(card, column.getAttribute('data-status-id'), from, column, card.querySelector('select.kanban-status'));
+        return;
+      }
       var previous = card.parentNode;
       column.querySelector('.kanban-cards').appendChild(card);
       refresh(from);
@@ -396,10 +650,11 @@
       var card = ancestor(form, 'kanban-card');
       var from = card ? ancestor(card, 'kanban-column') : null;
       var statusId = body.get ? body.get('status_id') : '';
-      var column = null;
-      var columns = board.querySelectorAll('.kanban-column');
-      for (var i = 0; i < columns.length; i++) {
-        if (columns[i].getAttribute('data-status-id') === String(statusId)) { column = columns[i]; }
+      var column = columnFor(statusId);
+      if (card && detailOn()) {
+        if (from && String(from.getAttribute('data-status-id')) === String(statusId)) { return; }
+        askDetail(card, statusId, from, column, form.querySelector('select.kanban-status'));
+        return;
       }
       var previous = card ? card.parentNode : null;
       if (card && column && from !== column) {

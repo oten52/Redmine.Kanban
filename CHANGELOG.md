@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0
+
+* Add a switch that asks for assignee, notes, dates and done ratio before a status change.
+* Leave the switch off to change the status directly.
+
 ## 0.2.0
 
 * Filter the board by one or more saved issue queries.

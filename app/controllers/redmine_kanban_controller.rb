@@ -4,7 +4,7 @@ class RedmineKanbanController < ApplicationController
   before_action :find_project_by_project_id
   before_action :require_kanban_access
   before_action :require_saved_board, :only => [:create, :update, :destroy]
-  helper_method :kanban_allowed_statuses, :kanban_can_save?, :kanban_can_share?
+  helper_method :kanban_allowed_statuses, :kanban_can_save?, :kanban_can_share?, :kanban_search_text
 
   def show
     forget_board if params[:clear].present?
@@ -257,6 +257,19 @@ class RedmineKanbanController < ApplicationController
 
   def show_path
     url_for(:controller => 'redmine_kanban', :action => 'show', :project_id => @project, :only_path => true)
+  end
+
+  def kanban_search_text(issue, assigner)
+    parts = [
+      issue.id,
+      issue.subject,
+      issue.assigned_to && issue.assigned_to.name,
+      assigner && assigner.name,
+      issue.tracker && issue.tracker.name,
+      issue.priority && issue.priority.name,
+      issue.fixed_version && issue.fixed_version.name
+    ]
+    parts.compact.join(' ').gsub(/\s+/, ' ')
   end
 
   def kanban_allowed_statuses(issue)

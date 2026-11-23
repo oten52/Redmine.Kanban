@@ -36,6 +36,17 @@
   .kanban-move select { width: 100%; }
   .kanban-move button { margin-top: 4px; }
   .kanban-empty, .kanban-none { color: #777; padding: 8px; }
+  .kanban-status-row { display: flex; align-items: center; gap: 4px; margin: 0 0 4px; }
+  .kanban-status-row.is-dragging { opacity: 0.45; }
+  .kanban-status-row .kanban-check { flex: 1; margin: 0; }
+  .kanban-grip { cursor: grab; color: #8b97a8; user-select: none; }
+  .kanban-nudge { width: 22px; height: 22px; min-height: 22px; margin: 0; padding: 0; line-height: 20px; }
+  .kanban-find { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; }
+  .kanban-find input[type="search"] { width: 360px; max-width: 100%; height: 32px; margin: 0; }
+  .kanban-find button { height: 32px; margin: 0; }
+  #kanban-find-clear[hidden] { display: none; }
+  .kanban-card.is-filtered { display: none; }
+  .kanban-by { margin-top: 4px; color: #5c6778; font-size: 12px; }
   .kanban-muted { color: #6b7280; }
   .kanban-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 0 0 12px; }
   .kanban-switch label { font-weight: 600; margin: 0; }
@@ -166,13 +177,18 @@
       </div>
       <div class="kanban-field">
         <span><%= l(:redmine_kanban_statuses) %></span>
-        <div class="kanban-checks">
-          <% @board.available_statuses.each do |status| %>
-            <label class="kanban-check">
-              <%= check_box_tag 'status_ids[]', status.id, @board.status_ids.include?(status.id), :id => "kanban_status_#{status.id}" %>
-              <%= status.name %>
-              <% if status.is_closed? %><span class="kanban-muted">(<%= l(:redmine_kanban_closed_mark) %>)</span><% end %>
-            </label>
+        <div class="kanban-checks" id="kanban-status-list">
+          <% @board.status_choices.each do |status| %>
+            <div class="kanban-status-row" draggable="true">
+              <span class="kanban-grip" aria-hidden="true">⋮⋮</span>
+              <label class="kanban-check">
+                <%= check_box_tag 'status_ids[]', status.id, @board.status_ids.include?(status.id), :id => "kanban_status_#{status.id}" %>
+                <%= status.name %>
+                <% if status.is_closed? %><span class="kanban-muted">(<%= l(:redmine_kanban_closed_mark) %>)</span><% end %>
+              </label>
+              <button type="button" class="kanban-nudge" data-dir="-1" aria-label="<%= l(:redmine_kanban_move_up) %>">↑</button>
+              <button type="button" class="kanban-nudge" data-dir="1" aria-label="<%= l(:redmine_kanban_move_down) %>">↓</button>
+            </div>
           <% end %>
         </div>
         <p class="kanban-help"><%= l(:redmine_kanban_statuses_help) %></p>
@@ -208,9 +224,17 @@
   <p class="kanban-none"><%= l(:redmine_kanban_none) %></p>
 <% end %>
 
+<div class="kanban-find">
+  <input type="search" id="kanban-find" placeholder="<%= l(:redmine_kanban_find_placeholder) %>" autocomplete="off">
+  <button type="button" id="kanban-find-go"><%= l(:redmine_kanban_find) %></button>
+  <button type="button" id="kanban-find-clear" hidden><%= l(:redmine_kanban_find_clear) %></button>
+</div>
+
 <div id="kanban-board"
      data-empty="<%= l(:redmine_kanban_empty) %>"
      data-failed="<%= l(:redmine_kanban_move_failed) %>"
+     data-me-name="<%= User.current.name %>"
+     data-assigned-by-label="<%= l(:redmine_kanban_assigned_by, :name => '') %>"
      data-move-url="<%= url_for({:controller => 'redmine_kanban', :action => 'move', :project_id => @project}.merge(@board.redirect_params)) %>">
   <div class="kanban-board">
     <% @statuses.each do |status| %>
@@ -225,7 +249,8 @@
             <p class="kanban-empty"><%= l(:redmine_kanban_empty) %></p>
           <% end %>
           <% cards.each do |issue| %>
-            <article class="kanban-card" draggable="<%= @can_edit ? 'true' : 'false' %>" data-issue-id="<%= issue.id %>" data-assigned-to="<%= issue.assigned_to_id %>" data-assigned-name="<%= issue.assigned_to ? issue.assigned_to.name : '' %>" data-done-ratio="<%= issue.done_ratio.to_i %>" data-start-date="<%= issue.start_date %>" data-due-date="<%= issue.due_date %>">
+            <% assigner = @board.assigners[issue.id] %>
+            <article class="kanban-card" draggable="<%= @can_edit ? 'true' : 'false' %>" data-issue-id="<%= issue.id %>" data-search="<%= kanban_search_text(issue, assigner) %>" data-assigned-to="<%= issue.assigned_to_id %>" data-assigned-name="<%= issue.assigned_to ? issue.assigned_to.name : '' %>" data-done-ratio="<%= issue.done_ratio.to_i %>" data-start-date="<%= issue.start_date %>" data-due-date="<%= issue.due_date %>">
               <div class="kanban-card-top">
                 <span class="kanban-tracker"><%= issue.tracker.name %></span>
                 <%= link_to "##{issue.id}", issue_path(issue) %>
@@ -235,6 +260,9 @@
                 <span><%= issue.assigned_to ? issue.assigned_to.name : l(:redmine_kanban_unassigned) %></span>
                 <span><%= issue.priority ? issue.priority.name : '' %></span>
               </div>
+              <% if assigner %>
+                <div class="kanban-by"><%= l(:redmine_kanban_assigned_by, :name => assigner.name) %></div>
+              <% end %>
               <% if issue.fixed_version || (issue.done_ratio && issue.done_ratio > 0) %>
                 <div class="kanban-meta">
                   <span><%= issue.fixed_version ? issue.fixed_version.name : '' %></span>
@@ -416,6 +444,69 @@
       });
     }
 
+    (function() {
+      var list = document.getElementById('kanban-status-list');
+      if (!list) { return; }
+      var dragging = null;
+
+      function rowOf(node) {
+        while (node && node !== list) {
+          if (node.className && typeof node.className === 'string' && (' ' + node.className + ' ').indexOf(' kanban-status-row ') !== -1) {
+            return node;
+          }
+          node = node.parentNode;
+        }
+        return null;
+      }
+
+      list.addEventListener('click', function(event) {
+        var button = event.target;
+        if (!button || button.tagName !== 'BUTTON') { return; }
+        var row = rowOf(button);
+        if (!row) { return; }
+        if (button.getAttribute('data-dir') === '-1' && row.previousElementSibling) {
+          list.insertBefore(row, row.previousElementSibling);
+        } else if (button.getAttribute('data-dir') === '1' && row.nextElementSibling) {
+          list.insertBefore(row.nextElementSibling, row);
+        }
+      });
+
+      list.addEventListener('dragstart', function(event) {
+        var tag = event.target.tagName;
+        if (tag === 'INPUT' || tag === 'BUTTON' || tag === 'LABEL') {
+          event.preventDefault();
+          return;
+        }
+        var row = rowOf(event.target);
+        if (!row) { return; }
+        dragging = row;
+        event.dataTransfer.setData('text/plain', 'status');
+        event.dataTransfer.effectAllowed = 'move';
+        if (row.className.indexOf(' is-dragging') === -1) { row.className += ' is-dragging'; }
+      });
+
+      list.addEventListener('dragend', function() {
+        if (!dragging) { return; }
+        dragging.className = dragging.className.replace(' is-dragging', '');
+        dragging = null;
+      });
+
+      list.addEventListener('dragover', function(event) {
+        if (!dragging) { return; }
+        event.preventDefault();
+        var row = rowOf(event.target);
+        if (!row || row === dragging) { return; }
+        var bounds = row.getBoundingClientRect();
+        if (event.clientY > bounds.top + bounds.height / 2) {
+          list.insertBefore(dragging, row.nextSibling);
+        } else {
+          list.insertBefore(dragging, row);
+        }
+      });
+
+      list.addEventListener('drop', function(event) { event.preventDefault(); });
+    })();
+
     if (!root) { return; }
     var board = root.querySelector('.kanban-board');
     var notice = document.getElementById('kanban-notice');
@@ -444,20 +535,74 @@
       notice.style.display = 'block';
     }
 
+    function visibleCount(column) {
+      var cards = column.querySelectorAll('.kanban-card');
+      var total = 0;
+      for (var i = 0; i < cards.length; i++) {
+        if (!hasClass(cards[i], 'is-filtered')) { total += 1; }
+      }
+      return total;
+    }
+
     function refresh(column) {
       if (!column) { return; }
-      var cards = column.querySelectorAll('.kanban-card');
+      var total = visibleCount(column);
       var count = column.querySelector('.kanban-count');
-      if (count) { count.textContent = String(cards.length); }
+      if (count) { count.textContent = String(total); }
       var list = column.querySelector('.kanban-cards');
+      if (!list) { return; }
       var empty = list.querySelector('.kanban-empty');
-      if (cards.length === 0 && !empty) {
+      if (total === 0 && !empty) {
         empty = document.createElement('p');
         empty.className = 'kanban-empty';
         empty.textContent = root.getAttribute('data-empty');
         list.appendChild(empty);
       }
-      if (cards.length > 0 && empty) { empty.parentNode.removeChild(empty); }
+      if (total > 0 && empty) { empty.parentNode.removeChild(empty); }
+    }
+
+    function applyFind() {
+      var input = document.getElementById('kanban-find');
+      var query = fold(input ? input.value : '');
+      var words = query.split(/\s+/);
+      var cards = board.querySelectorAll('.kanban-card');
+      for (var i = 0; i < cards.length; i++) {
+        var hay = fold(cards[i].getAttribute('data-search') || '');
+        var match = true;
+        for (var w = 0; w < words.length; w++) {
+          if (words[w] && hay.indexOf(words[w]) === -1) { match = false; }
+        }
+        if (match) {
+          cards[i].className = cards[i].className.replace(' is-filtered', '');
+        } else if (!hasClass(cards[i], 'is-filtered')) {
+          cards[i].className += ' is-filtered';
+        }
+      }
+      var columns = board.querySelectorAll('.kanban-column');
+      for (var c = 0; c < columns.length; c++) { refresh(columns[c]); }
+      var clear = document.getElementById('kanban-find-clear');
+      if (clear) { clear.hidden = !query; }
+    }
+
+    var findInput = document.getElementById('kanban-find');
+    var findGo = document.getElementById('kanban-find-go');
+    var findClear = document.getElementById('kanban-find-clear');
+    if (findInput) {
+      findInput.addEventListener('input', applyFind);
+      findInput.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' || event.keyCode === 13) {
+          event.preventDefault();
+          applyFind();
+        }
+      });
+    }
+    if (findGo) { findGo.addEventListener('click', applyFind); }
+    if (findClear) {
+      findClear.addEventListener('click', function() {
+        if (findInput) { findInput.value = ''; }
+        applyFind();
+        if (findInput) { findInput.focus(); }
+      });
     }
 
     function findCard(issueId) {
@@ -803,16 +948,45 @@
       return previous;
     }
 
+    function rememberSearch(card, extra) {
+      if (!extra) { return; }
+      var search = card.getAttribute('data-search') || '';
+      if (fold(search).indexOf(fold(extra)) !== -1) { return; }
+      card.setAttribute('data-search', (search + ' ' + extra).replace(/^\s+|\s+$/g, ''));
+    }
+
+    function paintAssigner(card, previousId, assignedId) {
+      if (String(previousId || '') === String(assignedId || '')) { return; }
+      var by = card.querySelector('.kanban-by');
+      if (!assignedId) {
+        if (by && by.parentNode) { by.parentNode.removeChild(by); }
+        return;
+      }
+      if (!by) {
+        by = document.createElement('div');
+        by.className = 'kanban-by';
+        var meta = card.querySelector('.kanban-meta');
+        if (meta && meta.parentNode) { meta.parentNode.insertBefore(by, meta.nextSibling); }
+      }
+      if (by) {
+        by.textContent = (root.getAttribute('data-assigned-by-label') || '') + (root.getAttribute('data-me-name') || '');
+      }
+      rememberSearch(card, root.getAttribute('data-me-name') || '');
+    }
+
     function paintCard(card, statusId, data) {
       var statusSelect = card.querySelector('select.kanban-status');
       if (statusSelect) { statusSelect.value = String(statusId); }
       var name = card.querySelector('.kanban-meta span');
+      var previousId = card.getAttribute('data-assigned-to') || '';
       var assignedId = data && data.assigned_to_id ? String(data.assigned_to_id) : '';
       var assignedName = data && data.assigned_to_name ? data.assigned_to_name : '';
       if (!assignedName) { assignedName = detailText('data-unassigned'); }
+      paintAssigner(card, previousId, assignedId);
       card.setAttribute('data-assigned-to', assignedId);
       card.setAttribute('data-assigned-name', data && data.assigned_to_name ? data.assigned_to_name : '');
       if (name) { name.textContent = assignedName; }
+      rememberSearch(card, data && data.assigned_to_name ? data.assigned_to_name : '');
       if (data) {
         card.setAttribute('data-done-ratio', data.done_ratio == null ? '' : String(data.done_ratio));
         card.setAttribute('data-start-date', data.start_date || '');

@@ -6,17 +6,19 @@ Her projeye Kanban sekmesi ekler. Sütunlar iş durumları, kartlar işlerdir.
 
 ## Yenilikler
 
-* 0.3.2: Atanan araması, iş formundaki kullanıcıların tamamını listeler. Ayrıntılar [CHANGELOG](CHANGELOG.md) dosyasında.
+* 0.3.3: Durum sırası, kart araması ve atayan kişi. Ayrıntılar [CHANGELOG](CHANGELOG.md) dosyasında.
 
 ## Ne yapar
 
 * İşleri görebilen kullanıcılar için proje menüsünde, İşler sekmesinin yanında Kanban sekmesi açılır.
 * Kayıtlı iş sorgularından bir veya birkaçını seçersiniz. Liste o sorguların güncel sonucudur.
-* Gösterilecek durumlar ayrıca seçilir. Seçilmezse açık durumlar gelir.
+* Gösterilecek durumlar seçilir ve tahtadaki sıraya sürüklenir. Seçilmezse açık durumlar gelir.
 * Görünüm kısayol olarak kaydedilir. Sorgularla aynı şekilde düzenlenir, silinir ve görünürlüğü değiştirilir: yalnızca bana, herkese veya seçilen rollere. Tüm projelerde de kullanılabilir.
 * Kısayollar sağ menüde durur. Kaydetme izni, sorgu kaydetme izniyle aynıdır. Herkese veya rollere açmak, genel sorgu yönetme iznini ister.
 * Kartı başka sütuna sürükleyince durum değişir. İş akışı ve düzenleme izni kontrol edilir.
 * "Durum değişirken sor" açıksa atanan, not, dosya, tarihler ve tamamlanma oranı sorulur. Kapalıyken durum doğrudan değişir.
+* Kartlar iş numarası, konu, atanan, atayan, izleyici, öncelik veya sürüme göre aranır.
+* Her kart, mevcut atamayı kimin yaptığını gösterir.
 * Eşleşen işlerden en son güncellenen 400 tanesi gösterilir.
 
 ## Redmine sürümü
@@ -46,7 +48,7 @@ Bir projeyi açın. Kanban sekmesi İşler sekmesinin yanındadır. Sorgu ve dur
 
 ## Güncelleme
 
-0.3.2 yeni bir göç eklemez. 0.2.0 göçü yapıldıysa çekip yeniden başlatmak yeter. Aşağıdaki göç komutu tekrar çalıştırılabilir.
+0.3.3 yeni bir göç eklemez. 0.2.0 göçü yapıldıysa çekip yeniden başlatmak yeter. Aşağıdaki göç komutu tekrar çalıştırılabilir.
 
 ```bash
 cd /home/niltek/redmine/app/plugins/Redmine.Kanban

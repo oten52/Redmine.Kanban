@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.3
+
+* Reorder the status columns by dragging the status list. The order is saved with the shortcut.
+* Search the cards by issue number, subject, assignee, assigner, tracker, priority or version.
+* Show who assigned the current assignee on each card.
+
 ## 0.3.2
 
 * List the same assignees as the issue form, including every assignable user and group, and keep search.

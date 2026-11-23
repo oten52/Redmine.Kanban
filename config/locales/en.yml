@@ -39,7 +39,13 @@ en:
   redmine_kanban_queries_help: The board lists the current result of the selected queries. Leave them empty to list the project issues.
   redmine_kanban_no_queries: There is no saved issue query you can use.
   redmine_kanban_statuses: Statuses to show
-  redmine_kanban_statuses_help: Leave them empty to show the open statuses.
+  redmine_kanban_statuses_help: Checked statuses appear from left to right in this order. Drag a row or use the arrows. Leave them empty to show the open statuses.
+  redmine_kanban_move_up: Move up
+  redmine_kanban_move_down: Move down
+  redmine_kanban_find: Search
+  redmine_kanban_find_placeholder: "Issue number, subject, assignee or assigner"
+  redmine_kanban_find_clear: Clear
+  redmine_kanban_assigned_by: "Assigned by: %{name}"
   redmine_kanban_closed_mark: closed
   redmine_kanban_global: All projects
   redmine_kanban_shortcuts: Shortcuts

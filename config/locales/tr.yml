@@ -39,7 +39,13 @@ tr:
   redmine_kanban_queries_help: Seçilen sorguların güncel sonucu listelenir. Hiçbiri seçilmezse projedeki işler gelir.
   redmine_kanban_no_queries: Kullanabileceğiniz kayıtlı iş sorgusu yok.
   redmine_kanban_statuses: Gösterilecek durumlar
-  redmine_kanban_statuses_help: Hiçbiri seçilmezse açık durumlar gösterilir.
+  redmine_kanban_statuses_help: İşaretli durumlar soldan sağa bu sırayla görünür. Satırı sürükleyin veya okları kullanın. Hiçbiri seçilmezse açık durumlar gösterilir.
+  redmine_kanban_move_up: Yukarı
+  redmine_kanban_move_down: Aşağı
+  redmine_kanban_find: Ara
+  redmine_kanban_find_placeholder: "İş no, konu, atanan, atayan"
+  redmine_kanban_find_clear: Temizle
+  redmine_kanban_assigned_by: "Atayan: %{name}"
   redmine_kanban_closed_mark: kapalı
   redmine_kanban_global: Tüm projeler
   redmine_kanban_shortcuts: Kısayollar

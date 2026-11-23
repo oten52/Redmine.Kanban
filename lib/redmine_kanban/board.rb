@@ -43,7 +43,16 @@ module RedmineKanban
     end
 
     def statuses
-      @statuses ||= IssueStatus.where(:id => status_ids).sorted.to_a
+      @statuses ||= begin
+        found = IssueStatus.where(:id => status_ids).index_by(&:id)
+        status_ids.map {|id| found[id]}.compact
+      end
+    end
+
+    def status_choices
+      chosen = {}
+      status_ids.each {|id| chosen[id] = true}
+      statuses + available_statuses.reject {|status| chosen[status.id]}
     end
 
     def available_statuses
@@ -79,6 +88,10 @@ module RedmineKanban
       @issues ||= load_issues
     end
 
+    def assigners
+      @assigners ||= load_assigners
+    end
+
     def issues_by_status
       @issues_by_status ||= begin
         grouped = Hash.new {|hash, key| hash[key] = []}
@@ -94,7 +107,7 @@ module RedmineKanban
     def differs?
       return false unless @saved && configured?
 
-      @saved.query_id_list.sort != query_ids.sort || @saved.status_id_list.sort != status_ids.sort
+      @saved.query_id_list.sort != query_ids.sort || @saved.status_id_list != status_ids
     end
 
     def redirect_params
@@ -156,6 +169,48 @@ module RedmineKanban
         [priority, updated]
       end
       rows
+    end
+
+    def load_assigners
+      assigned = issues.select {|issue| issue.assigned_to_id.present?}
+      return {} if assigned.empty?
+
+      history = Hash.new {|hash, key| hash[key] = []}
+      assignment_rows(assigned.map(&:id)).each do |issue_id, user_id, value|
+        history[issue_id] << [user_id, value.to_s]
+      end
+
+      chosen = {}
+      user_ids = []
+      assigned.each do |issue|
+        wanted = issue.assigned_to_id.to_s
+        user_id = nil
+        history[issue.id].each do |actor_id, value|
+          user_id = actor_id if value == wanted
+        end
+        user_id ||= issue.author_id
+        chosen[issue.id] = user_id
+        user_ids << user_id
+      end
+
+      users = User.where(:id => user_ids.compact.uniq).index_by(&:id)
+      chosen.each_with_object({}) do |(issue_id, user_id), result|
+        result[issue_id] = users[user_id] if users[user_id]
+      end
+    rescue ActiveRecord::ActiveRecordError
+      {}
+    end
+
+    def assignment_rows(ids)
+      return [] if ids.empty? || !defined?(JournalDetail)
+
+      JournalDetail.joins(:journal).
+        where("#{Journal.table_name}.journalized_type = ? AND #{Journal.table_name}.journalized_id IN (?)", 'Issue', ids).
+        where(:property => 'attr', :prop_key => 'assigned_to_id').
+        order("#{Journal.table_name}.id ASC").
+        pluck("#{Journal.table_name}.journalized_id", "#{Journal.table_name}.user_id", "#{JournalDetail.table_name}.value")
+    rescue ActiveRecord::ActiveRecordError
+      []
     end
 
     def ids_for(query)

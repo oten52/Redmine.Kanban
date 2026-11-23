@@ -1,0 +1,22 @@
+tr:
+  redmine_kanban_menu: Kanban
+  redmine_kanban_filters: Süzgeç
+  redmine_kanban_tracker: İş tipi
+  redmine_kanban_assignee: Atanan
+  redmine_kanban_priority: Öncelik
+  redmine_kanban_version: Sürüm
+  redmine_kanban_search: Konu
+  redmine_kanban_all: Tümü
+  redmine_kanban_mine: Bana atananlar
+  redmine_kanban_unassigned: Atanmamış
+  redmine_kanban_closed: Kapalı durumları göster
+  redmine_kanban_apply: Uygula
+  redmine_kanban_clear: Temizle
+  redmine_kanban_move: Taşı
+  redmine_kanban_empty: Bu sütun boş
+  redmine_kanban_help: Kartı başka bir sütuna sürükleyin veya listeden durum seçip taşıyın.
+  redmine_kanban_truncated: "En son güncellenen 400 iş gösteriliyor. Daha dar bir liste için süzgeç kullanın."
+  redmine_kanban_none: Bu süzgeçte iş yok.
+  redmine_kanban_transition_denied: İş akışı bu durum değişikliğine izin vermiyor.
+  redmine_kanban_not_found: İş veya durum bulunamadı.
+  redmine_kanban_move_failed: Durum değiştirilemedi.

@@ -1,0 +1,22 @@
+en:
+  redmine_kanban_menu: Kanban
+  redmine_kanban_filters: Filters
+  redmine_kanban_tracker: Tracker
+  redmine_kanban_assignee: Assignee
+  redmine_kanban_priority: Priority
+  redmine_kanban_version: Version
+  redmine_kanban_search: Subject
+  redmine_kanban_all: Any
+  redmine_kanban_mine: Assigned to me
+  redmine_kanban_unassigned: Unassigned
+  redmine_kanban_closed: Show closed statuses
+  redmine_kanban_apply: Apply
+  redmine_kanban_clear: Clear
+  redmine_kanban_move: Move
+  redmine_kanban_empty: This column is empty
+  redmine_kanban_help: Drag a card to another column, or choose a status and move it.
+  redmine_kanban_truncated: "Only the 400 most recently updated issues are shown. Narrow the filters to see a smaller set."
+  redmine_kanban_none: No issues match these filters.
+  redmine_kanban_transition_denied: The workflow does not allow this status change.
+  redmine_kanban_not_found: The issue or status could not be found.
+  redmine_kanban_move_failed: The status could not be changed.

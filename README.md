@@ -6,7 +6,7 @@ Adds a Kanban tab to each project. Columns are issue statuses and cards are issu
 
 ## What's new
 
-* 0.3.1: The status-change dialog searches assignees and accepts files. See [CHANGELOG](CHANGELOG.md).
+* 0.3.2: Assignee search lists the same users as the issue form. See [CHANGELOG](CHANGELOG.md).
 
 ## Features
 
@@ -46,7 +46,7 @@ Open a project. The Kanban tab is next to Issues. Select queries and statuses, t
 
 ## Update
 
-0.3.1 does not add a migration. If 0.2.0 is already migrated, pull and restart are enough. The migrate command below is safe to repeat.
+0.3.2 does not add a migration. If 0.2.0 is already migrated, pull and restart are enough. The migrate command below is safe to repeat.
 
 ```bash
 cd /home/niltek/redmine/app/plugins/Redmine.Kanban

@@ -6,7 +6,7 @@ Her projeye Kanban sekmesi ekler. Sütunlar iş durumları, kartlar işlerdir.
 
 ## Yenilikler
 
-* 0.3.1: Durum penceresinde atanan aranır ve nota dosya eklenir. Ayrıntılar [CHANGELOG](CHANGELOG.md) dosyasında.
+* 0.3.2: Atanan araması, iş formundaki kullanıcıların tamamını listeler. Ayrıntılar [CHANGELOG](CHANGELOG.md) dosyasında.
 
 ## Ne yapar
 
@@ -46,7 +46,7 @@ Bir projeyi açın. Kanban sekmesi İşler sekmesinin yanındadır. Sorgu ve dur
 
 ## Güncelleme
 
-0.3.1 yeni bir göç eklemez. 0.2.0 göçü yapıldıysa çekip yeniden başlatmak yeter. Aşağıdaki göç komutu tekrar çalıştırılabilir.
+0.3.2 yeni bir göç eklemez. 0.2.0 göçü yapıldıysa çekip yeniden başlatmak yeter. Aşağıdaki göç komutu tekrar çalıştırılabilir.
 
 ```bash
 cd /home/niltek/redmine/app/plugins/Redmine.Kanban

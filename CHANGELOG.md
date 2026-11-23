@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.2
+
+* List the same assignees as the issue form, including every assignable user and group, and keep search.
+
 ## 0.3.1
 
 * Show the status-change fields in a dialog that stays above the board.

@@ -61,6 +61,7 @@
   #kanban-detail input[type="text"], #kanban-detail input[type="search"], #kanban-detail input[type="number"], #kanban-detail input[type="date"], #kanban-detail textarea { display: block; width: 100%; max-width: none; height: auto; min-height: 38px; margin: 0; padding: 8px 10px; float: none; border: 1px solid #d5dbe3; border-radius: 8px; background: #fff; color: #1d2733; font: inherit; box-shadow: none; }
   #kanban-detail textarea { min-height: 96px; resize: vertical; }
   #kanban-detail input:focus, #kanban-detail textarea:focus { border-color: #2f6fed; outline: 2px solid rgba(47, 111, 237, 0.18); outline-offset: 0; }
+  #kanban-detail select.kanban-people-source { position: absolute; width: 1px; height: 1px; margin: 0; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
   #kanban-detail .kanban-combo { position: relative; }
   #kanban-detail .kanban-combo-value { display: flex; align-items: center; justify-content: space-between; width: 100%; height: auto; min-height: 38px; margin: 0; padding: 8px 10px; border: 1px solid #d5dbe3; border-radius: 8px; background: #fff; color: #1d2733; font: inherit; text-align: left; cursor: pointer; }
   #kanban-detail .kanban-combo-value:hover, #kanban-detail .kanban-combo.is-open .kanban-combo-value { border-color: #2f6fed; }
@@ -332,7 +333,20 @@
         <button type="submit" class="kanban-btn-primary" id="kanban-detail-save"><%= l(:button_save) %></button>
       </div>
     </form>
-    <script type="application/json" id="kanban-people"><%= @project.assignable_users.map { |principal| {'id' => principal.id, 'name' => principal.name.to_s} }.to_json %></script>
+    <% assignable = @project.assignable_users.to_a.sort %>
+    <% assignable_users = assignable.reject { |principal| principal.is_a?(Group) } %>
+    <% assignable_groups = assignable.select { |principal| principal.is_a?(Group) } %>
+    <select id="kanban-people" class="kanban-people-source" tabindex="-1" aria-hidden="true">
+      <% if assignable_users.any? { |user| user.id == User.current.id } %>
+        <option value="<%= User.current.id %>" data-me="1">&lt;&lt; <%= l(:label_me) %> &gt;&gt;</option>
+      <% end %>
+      <% assignable_users.each do |user| %>
+        <option value="<%= user.id %>"><%= user.name %></option>
+      <% end %>
+      <% assignable_groups.each do |group| %>
+        <option value="<%= group.id %>" data-group="1"><%= group.name %></option>
+      <% end %>
+    </select>
   </div>
 <% end %>
 
@@ -519,8 +533,17 @@
     var pickedFiles = [];
     var saving = false;
     var peopleNode = document.getElementById('kanban-people');
-    if (peopleNode) {
-      try { people = JSON.parse(peopleNode.textContent) || []; } catch (ignore) { people = []; }
+    if (peopleNode && peopleNode.options) {
+      for (var personIndex = 0; personIndex < peopleNode.options.length; personIndex++) {
+        var personOption = peopleNode.options[personIndex];
+        if (!personOption.value) { continue; }
+        people.push({
+          id: personOption.value,
+          name: personOption.text,
+          me: personOption.getAttribute('data-me') === '1',
+          group: personOption.getAttribute('data-group') === '1'
+        });
+      }
     }
 
     function detailText(name) {
@@ -590,7 +613,6 @@
         var person = activePeople[i];
         var name = person.name || String(person.id);
         if (needle && fold(name).indexOf(needle) === -1 && String(person.id).indexOf(needle) === -1) { continue; }
-        if (shown >= 80) { break; }
         list.appendChild(personButton(String(person.id), name, selected));
         shown += 1;
       }

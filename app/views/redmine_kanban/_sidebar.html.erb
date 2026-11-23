@@ -1,0 +1,18 @@
+<% mine, shared = shortcuts.partition {|board| board.user_id == User.current.id} %>
+<h3><%= l(:redmine_kanban_shortcuts) %></h3>
+<% if mine.empty? && shared.empty? %>
+  <p><%= l(:redmine_kanban_no_shortcuts) %></p>
+<% end %>
+<% [[l(:redmine_kanban_my_shortcuts), mine], [l(:redmine_kanban_shared), shared]].each do |caption, boards| %>
+  <% next if boards.empty? %>
+  <h4><%= caption %></h4>
+  <ul class="queries">
+    <% boards.each do |board| %>
+      <li class="<%= 'selected' if saved && saved.id == board.id %>">
+        <%= link_to board.name,
+              {:controller => 'redmine_kanban', :action => 'show', :project_id => project, :board_id => board.id},
+              :title => [board.description, (board.private? ? l(:label_visibility_private) : (board.visibility == RedmineKanban::SavedBoard::VISIBILITY_PUBLIC ? l(:label_visibility_public) : l(:label_visibility_roles)))].reject(&:blank?).join(' — ') %>
+      </li>
+    <% end %>
+  </ul>
+<% end %>

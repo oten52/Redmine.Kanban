@@ -1,15 +1,24 @@
-<% html_title l(:redmine_kanban_menu) %>
-<h2><%= l(:redmine_kanban_menu) %></h2>
+<% html_title(@saved ? @saved.name : l(:redmine_kanban_menu)) %>
+<% content_for :sidebar do %>
+  <%= render :partial => 'sidebar', :locals => {:shortcuts => @shortcuts, :saved => @saved, :project => @project} %>
+<% end %>
 
 <style>
   .kanban-filters { padding: 12px 14px; margin-bottom: 12px; }
-  .kanban-filters .kanban-row { display: flex; flex-wrap: wrap; align-items: flex-end; }
-  .kanban-filters label { display: block; font-size: 12px; margin: 0 12px 8px 0; }
-  .kanban-filters select, .kanban-filters input[type="text"] { display: block; min-width: 140px; margin-top: 4px; }
-  .kanban-filters .kanban-actions { margin: 0 0 8px 0; }
-  .kanban-filters .kanban-actions a { margin-right: 10px; }
+  .kanban-filters .kanban-row { display: flex; flex-wrap: wrap; align-items: flex-start; }
+  .kanban-field { margin: 0 16px 8px 0; min-width: 240px; flex: 1 1 280px; }
+  .kanban-field > span { display: block; font-size: 12px; color: #5c6778; margin-bottom: 4px; }
+  .kanban-checks { max-height: 180px; overflow: auto; border: 1px solid #e1e5ec; border-radius: 6px; padding: 8px 10px; background: #fff; }
+  .kanban-check { display: block; font-size: 13px; margin: 0 0 4px; font-weight: normal; }
+  .kanban-group { font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: #6b7280; margin: 6px 0 4px; }
+  .kanban-actions { margin: 8px 0 0; }
+  .kanban-actions a { margin-left: 10px; }
   .kanban-help, .kanban-limit { color: #666; margin: 0 0 10px; }
   .kanban-notice { display: none; margin-bottom: 10px; }
+  .kanban-inline { display: inline-block; margin: 0 12px 6px 0; font-weight: normal; }
+  .kanban-save h3 { margin-top: 0; }
+  .kanban-delete-form { display: inline; margin-left: 8px; }
+  .kanban-delete { background: none; border: 0; padding: 0; color: #b42318; cursor: pointer; }
   .kanban-board { display: flex; align-items: flex-start; overflow-x: auto; padding: 2px 2px 16px; }
   .kanban-column { width: 280px; min-width: 280px; margin-right: 12px; background: #f3f5f8; border: 1px solid #e1e5ec; border-radius: 8px; }
   .kanban-column.is-over { border-color: #2d6cdf; box-shadow: inset 0 0 0 2px #2d6cdf; }
@@ -27,58 +36,107 @@
   .kanban-move select { width: 100%; }
   .kanban-move button { margin-top: 4px; }
   .kanban-empty, .kanban-none { color: #777; padding: 8px; }
+  .kanban-muted { color: #6b7280; }
 </style>
 
+<div class="contextual">
+  <% if @boards_ready && kanban_can_save? && !(@form_board && @form_board.new_record?) %>
+    <%= link_to l(:redmine_kanban_add_shortcut), {:controller => 'redmine_kanban', :action => 'show', :project_id => @project, :save => 1}.merge(@board.redirect_params), :id => 'kanban-add-shortcut' %>
+  <% end %>
+  <% if @saved && @saved.editable_by?(User.current) %>
+    <% unless @form_board && @form_board.persisted? %>
+      <%= link_to l(:button_edit), {:controller => 'redmine_kanban', :action => 'show', :project_id => @project, :edit => 1}.merge(@board.redirect_params), :id => 'kanban-edit' %>
+    <% end %>
+    <%= button_to l(:button_delete),
+          {:controller => 'redmine_kanban', :action => 'destroy', :project_id => @project, :id => @saved.id},
+          :form_class => 'kanban-delete-form', :class => 'kanban-delete',
+          :data => {:confirm => l(:text_are_you_sure)} %>
+  <% end %>
+</div>
+
+<h2><%= @saved ? @saved.name : l(:redmine_kanban_menu) %></h2>
+<% if @saved && @saved.description.present? %>
+  <p class="kanban-help"><%= @saved.description %></p>
+<% end %>
+
+<% unless @boards_ready %>
+  <p class="flash error"><%= l(:redmine_kanban_migrate) %></p>
+<% end %>
+<% if @missing_board %>
+  <p class="flash error"><%= l(:redmine_kanban_missing) %></p>
+<% end %>
+<% if @board.query_failed %>
+  <p class="flash error"><%= l(:redmine_kanban_query_failed) %></p>
+<% end %>
+<% if @board.differs? && !(@form_board && @form_board.persisted?) %>
+  <p class="kanban-help"><%= l(:redmine_kanban_unsaved) %></p>
+<% end %>
 <% if @board.truncated? %>
   <p class="kanban-limit"><%= l(:redmine_kanban_truncated) %></p>
 <% end %>
 <p id="kanban-notice" class="flash error kanban-notice"></p>
 
+<% global_queries, project_queries = @board.visible_queries.partition {|query| query.project_id.nil?} %>
 <div class="box kanban-filters">
-  <%= form_tag({:controller => 'redmine_kanban', :action => 'show', :project_id => @project}, :method => :get) do %>
+  <%= form_tag({:controller => 'redmine_kanban', :action => 'show', :project_id => @project}, :method => :get, :id => 'kanban-setup') do %>
+    <%= hidden_field_tag :configured, '1' %>
+    <%= hidden_field_tag :board_id, @saved.id if @saved %>
     <div class="kanban-row">
-      <label>
-        <%= l(:redmine_kanban_tracker) %>
-        <%= select_tag :tracker_id,
-              options_for_select([[l(:redmine_kanban_all), '']] + @project.trackers.map { |tracker| [tracker.name, tracker.id.to_s] },
-                                 kanban_filters['tracker_id'].to_s) %>
-      </label>
-      <label>
-        <%= l(:redmine_kanban_assignee) %>
-        <%= select_tag :assigned_to_id,
-              options_for_select(
-                [[l(:redmine_kanban_all), ''], [l(:redmine_kanban_mine), 'me'], [l(:redmine_kanban_unassigned), 'none']] +
-                  @project.assignable_users.map { |user| [user.name, user.id.to_s] },
-                kanban_filters['assigned_to_id'].to_s
-              ) %>
-      </label>
-      <label>
-        <%= l(:redmine_kanban_priority) %>
-        <%= select_tag :priority_id,
-              options_for_select([[l(:redmine_kanban_all), '']] + IssuePriority.active.map { |priority| [priority.name, priority.id.to_s] },
-                                 kanban_filters['priority_id'].to_s) %>
-      </label>
-      <label>
-        <%= l(:redmine_kanban_version) %>
-        <%= select_tag :fixed_version_id,
-              options_for_select([[l(:redmine_kanban_all), '']] + @project.shared_versions.to_a.map { |version| [version.name, version.id.to_s] },
-                                 kanban_filters['fixed_version_id'].to_s) %>
-      </label>
-      <label>
-        <%= l(:redmine_kanban_search) %>
-        <%= text_field_tag :q, kanban_filters['q'], :size => 20, :maxlength => 80 %>
-      </label>
-      <label>
-        <%= check_box_tag :closed, '1', @board.show_closed?, :id => 'kanban_closed' %>
-        <%= l(:redmine_kanban_closed) %>
-      </label>
-      <p class="kanban-actions">
-        <%= submit_tag l(:redmine_kanban_apply) %>
-        <%= link_to l(:redmine_kanban_clear), :controller => 'redmine_kanban', :action => 'show', :project_id => @project %>
-      </p>
+      <div class="kanban-field">
+        <span><%= l(:redmine_kanban_queries) %></span>
+        <div class="kanban-checks">
+          <% if @board.visible_queries.empty? %>
+            <p class="kanban-none"><%= l(:redmine_kanban_no_queries) %></p>
+          <% end %>
+          <% if global_queries.any? %>
+            <p class="kanban-group"><%= l(:redmine_kanban_global) %></p>
+            <% global_queries.each do |query| %>
+              <label class="kanban-check">
+                <%= check_box_tag 'query_ids[]', query.id, @board.query_ids.include?(query.id), :id => "kanban_query_#{query.id}" %>
+                <%= query.name %>
+              </label>
+            <% end %>
+          <% end %>
+          <% if project_queries.any? %>
+            <p class="kanban-group"><%= @project.name %></p>
+            <% project_queries.each do |query| %>
+              <label class="kanban-check">
+                <%= check_box_tag 'query_ids[]', query.id, @board.query_ids.include?(query.id), :id => "kanban_query_#{query.id}" %>
+                <%= query.name %>
+              </label>
+            <% end %>
+          <% end %>
+        </div>
+        <p class="kanban-help"><%= l(:redmine_kanban_queries_help) %></p>
+      </div>
+      <div class="kanban-field">
+        <span><%= l(:redmine_kanban_statuses) %></span>
+        <div class="kanban-checks">
+          <% @board.available_statuses.each do |status| %>
+            <label class="kanban-check">
+              <%= check_box_tag 'status_ids[]', status.id, @board.status_ids.include?(status.id), :id => "kanban_status_#{status.id}" %>
+              <%= status.name %>
+              <% if status.is_closed? %><span class="kanban-muted">(<%= l(:redmine_kanban_closed_mark) %>)</span><% end %>
+            </label>
+          <% end %>
+        </div>
+        <p class="kanban-help"><%= l(:redmine_kanban_statuses_help) %></p>
+      </div>
     </div>
+    <p class="kanban-actions">
+      <%= submit_tag l(:redmine_kanban_apply) %>
+      <%= link_to l(:redmine_kanban_clear), {:controller => 'redmine_kanban', :action => 'show', :project_id => @project, :clear => 1} %>
+    </p>
   <% end %>
 </div>
+
+<% if @board.selected_queries.any? %>
+  <p class="kanban-help"><%= @board.selected_queries.map(&:name).join(', ') %></p>
+<% end %>
+
+<% if @form_board %>
+  <%= render :partial => 'save', :locals => {:form_board => @form_board, :board => @board, :saved => @saved, :project => @project} %>
+<% end %>
 
 <% if @can_edit %>
   <p class="kanban-help"><%= l(:redmine_kanban_help) %></p>
@@ -91,7 +149,7 @@
 <div id="kanban-board"
      data-empty="<%= l(:redmine_kanban_empty) %>"
      data-failed="<%= l(:redmine_kanban_move_failed) %>"
-     data-move-url="<%= url_for(:controller => 'redmine_kanban', :action => 'move', :project_id => @project) %>">
+     data-move-url="<%= url_for({:controller => 'redmine_kanban', :action => 'move', :project_id => @project}.merge(@board.redirect_params)) %>">
   <div class="kanban-board">
     <% @statuses.each do |status| %>
       <% cards = @grouped[status.id] || [] %>
@@ -122,14 +180,11 @@
                 </div>
               <% end %>
               <% if @can_edit %>
-                <%= form_tag({:controller => 'redmine_kanban', :action => 'move', :project_id => @project}, :class => 'kanban-move') do %>
+                <%= form_tag({:controller => 'redmine_kanban', :action => 'move', :project_id => @project}.merge(@board.redirect_params), :class => 'kanban-move') do %>
                   <%= hidden_field_tag :issue_id, issue.id, :id => "kanban_issue_#{issue.id}" %>
-                  <% kanban_filters.each do |key, value| %>
-                    <%= hidden_field_tag key, value, :id => "kanban_#{issue.id}_#{key}" %>
-                  <% end %>
                   <%= select_tag :status_id,
                         options_from_collection_for_select(kanban_allowed_statuses(issue), :id, :name, issue.status_id),
-                        :id => "kanban_status_#{issue.id}", :class => 'kanban-status' %>
+                        :id => "kanban_status_move_#{issue.id}", :class => 'kanban-status' %>
                   <%= submit_tag l(:redmine_kanban_move) %>
                 <% end %>
               <% end %>
@@ -144,6 +199,69 @@
 <%= javascript_tag do %>
   (function() {
     var root = document.getElementById('kanban-board');
+    var setup = document.getElementById('kanban-setup');
+    var saveForm = document.getElementById('kanban-save-form');
+
+    function openSetup(flag) {
+      return function(event) {
+        if (!setup) { return; }
+        event.preventDefault();
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = flag;
+        input.value = '1';
+        setup.appendChild(input);
+        setup.submit();
+      };
+    }
+
+    var addLink = document.getElementById('kanban-add-shortcut');
+    var editLink = document.getElementById('kanban-edit');
+    if (addLink) { addLink.addEventListener('click', openSetup('save')); }
+    if (editLink) { editLink.addEventListener('click', openSetup('edit')); }
+
+    function syncVisibility() {
+      var roles = document.getElementById('kanban_visibility_1');
+      var priv = document.getElementById('kanban_visibility_0');
+      var boxes = document.querySelectorAll('#kanban-roles input[type="checkbox"]');
+      var rolesOn = !!(roles && roles.checked);
+      for (var i = 0; i < boxes.length; i++) { boxes[i].disabled = !rolesOn; }
+      var allProjects = document.getElementById('kanban_for_all');
+      if (allProjects && (' ' + allProjects.className + ' ').indexOf(' kanban-private-only ') !== -1) {
+        var privateOn = !priv || priv.checked;
+        allProjects.disabled = !privateOn;
+        if (!privateOn) { allProjects.checked = false; }
+      }
+    }
+
+    var visibility = document.querySelectorAll('input[name="visibility"]');
+    for (var v = 0; v < visibility.length; v++) {
+      visibility[v].addEventListener('change', syncVisibility);
+    }
+    syncVisibility();
+
+    if (saveForm && setup) {
+      saveForm.addEventListener('submit', function() {
+        var names = ['query_ids[]', 'status_ids[]'];
+        for (var n = 0; n < names.length; n++) {
+          var name = names[n];
+          var existing = saveForm.querySelectorAll('input[name="' + name + '"]');
+          for (var e = existing.length - 1; e >= 0; e--) {
+            existing[e].parentNode.removeChild(existing[e]);
+          }
+          var boxes = setup.querySelectorAll('input[name="' + name + '"]');
+          for (var b = 0; b < boxes.length; b++) {
+            if (!boxes[b].checked) { continue; }
+            var hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = name;
+            hidden.value = boxes[b].value;
+            saveForm.appendChild(hidden);
+          }
+        }
+      });
+    }
+
     if (!root) { return; }
     var board = root.querySelector('.kanban-board');
     var notice = document.getElementById('kanban-notice');
@@ -283,14 +401,18 @@
       for (var i = 0; i < columns.length; i++) {
         if (columns[i].getAttribute('data-status-id') === String(statusId)) { column = columns[i]; }
       }
+      var previous = card ? card.parentNode : null;
       if (card && column && from !== column) {
         column.querySelector('.kanban-cards').appendChild(card);
         refresh(from);
         refresh(column);
+      } else if (card && !column && from) {
+        card.parentNode.removeChild(card);
+        refresh(from);
       }
       if (notice) { notice.style.display = 'none'; }
       send(body).catch(function(error) {
-        if (card && from) { from.querySelector('.kanban-cards').appendChild(card); }
+        if (card && previous) { previous.appendChild(card); }
         refresh(from);
         refresh(column);
         showError(error.message);

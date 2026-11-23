@@ -1,0 +1,65 @@
+<% updating = form_board.persisted? %>
+<% target = updating ?
+     {:controller => 'redmine_kanban', :action => 'update', :project_id => project, :id => form_board.id} :
+     {:controller => 'redmine_kanban', :action => 'create', :project_id => project} %>
+<div class="box kanban-save">
+  <h3><%= updating ? l(:redmine_kanban_edit_shortcut) : l(:redmine_kanban_add_shortcut) %></h3>
+  <% if form_board.errors.any? %>
+    <div class="flash error"><%= form_board.errors.full_messages.join(', ') %></div>
+  <% end %>
+  <p class="kanban-help"><%= l(:redmine_kanban_save_help) %></p>
+  <%= form_tag(target, :id => 'kanban-save-form') do %>
+    <%= hidden_field_tag :configured, '1' %>
+    <%= hidden_field_tag :board_id, saved.id if saved %>
+    <% board.query_ids.each do |query_id| %>
+      <%= hidden_field_tag 'query_ids[]', query_id, :id => "kanban_saved_query_#{query_id}" %>
+    <% end %>
+    <% board.status_ids.each do |status_id| %>
+      <%= hidden_field_tag 'status_ids[]', status_id, :id => "kanban_saved_status_#{status_id}" %>
+    <% end %>
+    <p>
+      <label for="kanban_board_name"><%= l(:field_name) %> <span class="required">*</span></label>
+      <%= text_field_tag :name, form_board.name, :id => 'kanban_board_name', :size => 60, :maxlength => 255, :required => true %>
+    </p>
+    <p>
+      <label for="kanban_board_description"><%= l(:field_description) %></label>
+      <%= text_field_tag :description, form_board.description, :id => 'kanban_board_description', :size => 60, :maxlength => 255 %>
+    </p>
+    <% if kanban_can_share? %>
+      <p>
+        <label><%= l(:field_visible) %></label>
+        <label class="kanban-inline">
+          <%= radio_button_tag :visibility, RedmineKanban::SavedBoard::VISIBILITY_PRIVATE, form_board.visibility == RedmineKanban::SavedBoard::VISIBILITY_PRIVATE, :id => 'kanban_visibility_0' %>
+          <%= l(:label_visibility_private) %>
+        </label>
+        <label class="kanban-inline">
+          <%= radio_button_tag :visibility, RedmineKanban::SavedBoard::VISIBILITY_PUBLIC, form_board.visibility == RedmineKanban::SavedBoard::VISIBILITY_PUBLIC, :id => 'kanban_visibility_2' %>
+          <%= l(:label_visibility_public) %>
+        </label>
+        <label class="kanban-inline">
+          <%= radio_button_tag :visibility, RedmineKanban::SavedBoard::VISIBILITY_ROLES, form_board.visibility == RedmineKanban::SavedBoard::VISIBILITY_ROLES, :id => 'kanban_visibility_1' %>
+          <%= l(:label_visibility_roles) %>
+        </label>
+      </p>
+      <p id="kanban-roles">
+        <% Role.givable.sorted.each do |role| %>
+          <label class="kanban-inline">
+            <%= check_box_tag 'role_ids[]', role.id, form_board.roles.include?(role), :id => "kanban_role_#{role.id}" %>
+            <%= role.name %>
+          </label>
+        <% end %>
+        <%= hidden_field_tag 'role_ids[]', '' %>
+      </p>
+    <% else %>
+      <%= hidden_field_tag :visibility, RedmineKanban::SavedBoard::VISIBILITY_PRIVATE %>
+      <p class="kanban-help"><%= l(:label_visibility_private) %></p>
+    <% end %>
+    <p>
+      <label class="kanban-inline" for="kanban_for_all">
+        <%= check_box_tag :board_is_for_all, '1', form_board.project_id.nil?, :id => 'kanban_for_all', :class => (User.current.admin? ? '' : 'kanban-private-only') %>
+        <%= l(:field_is_for_all) %>
+      </label>
+    </p>
+    <p><%= submit_tag l(:button_save) %></p>
+  <% end %>
+</div>

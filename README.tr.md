@@ -6,21 +6,23 @@ Her projeye Kanban sekmesi ekler. Sütunlar iş durumları, kartlar işlerdir.
 
 ## Yenilikler
 
-* 0.1.0: İlk sürüm. Ayrıntılar [CHANGELOG](CHANGELOG.md) dosyasında.
+* 0.2.0: Sorgu seçimi, durum ayarı ve paylaşılabilen kısayollar. Ayrıntılar [CHANGELOG](CHANGELOG.md) dosyasında.
 
 ## Ne yapar
 
 * İşleri görebilen kullanıcılar için proje menüsünde, İşler sekmesinin yanında Kanban sekmesi açılır.
-* Sütunlar projedeki iş tiplerinin iş akışından gelir. Kapalı durumlar süzgeçle gösterilebilir.
-* Kartı başka sütuna sürükleyince durum değişir. Kartın içinden de durum seçilebilir. İş akışı ve düzenleme izni kontrol edilir.
-* İş tipi, atanan, öncelik, sürüm ve konuya göre süzülür.
+* Kayıtlı iş sorgularından bir veya birkaçını seçersiniz. Liste o sorguların güncel sonucudur.
+* Gösterilecek durumlar ayrıca seçilir. Seçilmezse açık durumlar gelir.
+* Görünüm kısayol olarak kaydedilir. Sorgularla aynı şekilde düzenlenir, silinir ve görünürlüğü değiştirilir: yalnızca bana, herkese veya seçilen rollere. Tüm projelerde de kullanılabilir.
+* Kısayollar sağ menüde durur. Kaydetme izni, sorgu kaydetme izniyle aynıdır. Herkese veya rollere açmak, genel sorgu yönetme iznini ister.
+* Kartı başka sütuna sürükleyince durum değişir. İş akışı ve düzenleme izni kontrol edilir.
 * Eşleşen işlerden en son güncellenen 400 tanesi gösterilir.
 
 ## Redmine sürümü
 
 * 4.2.x ~ 6.x
 
-Veritabanı göçü, ek gem ve asset derlemesi gerekmez.
+Ek gem ve asset derlemesi gerekmez. Kısayollar için bir veritabanı göçü vardır.
 
 ## Kurulum
 
@@ -32,9 +34,23 @@ git clone https://github.com/oten52/Redmine.Kanban.git
 
 Klasör adı `Redmine.Kanban` olarak kalabilir.
 
-2. Redmine'ı yeniden başlatın.
+2. Eklenti göçünü çalıştırın ve Redmine'ı yeniden başlatın.
 
-Bir projeyi açın. Kanban sekmesi İşler sekmesinin yanındadır.
+```bash
+docker exec redmine-redmine-1 bundle exec rake redmine:plugins:migrate NAME=redmine_kanban RAILS_ENV=production
+docker restart redmine-redmine-1
+```
+
+Bir projeyi açın. Kanban sekmesi İşler sekmesinin yanındadır. Sorgu ve durum seçip Kısa yola ekle deyin.
+
+## Güncelleme
+
+```bash
+cd /home/niltek/redmine/app/plugins/Redmine.Kanban
+sudo -u niltek git pull
+docker exec redmine-redmine-1 bundle exec rake redmine:plugins:migrate NAME=redmine_kanban RAILS_ENV=production
+docker restart redmine-redmine-1
+```
 
 ## Kaldırma
 

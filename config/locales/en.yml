@@ -20,3 +20,22 @@ en:
   redmine_kanban_transition_denied: The workflow does not allow this status change.
   redmine_kanban_not_found: The issue or status could not be found.
   redmine_kanban_move_failed: The status could not be changed.
+  redmine_kanban_queries: Queries
+  redmine_kanban_queries_help: The board lists the current result of the selected queries. Leave them empty to list the project issues.
+  redmine_kanban_no_queries: There is no saved issue query you can use.
+  redmine_kanban_statuses: Statuses to show
+  redmine_kanban_statuses_help: Leave them empty to show the open statuses.
+  redmine_kanban_closed_mark: closed
+  redmine_kanban_global: All projects
+  redmine_kanban_shortcuts: Shortcuts
+  redmine_kanban_my_shortcuts: My shortcuts
+  redmine_kanban_shared: Shared
+  redmine_kanban_no_shortcuts: No shortcuts yet.
+  redmine_kanban_add_shortcut: Add shortcut
+  redmine_kanban_edit_shortcut: Edit shortcut
+  redmine_kanban_save_help: Saving stores the queries and statuses currently selected on this page.
+  redmine_kanban_roles_required: Select at least one role to share the shortcut with roles.
+  redmine_kanban_missing: That shortcut is not available.
+  redmine_kanban_unsaved: This view differs from the saved shortcut. Edit and save it to update the shortcut.
+  redmine_kanban_query_failed: One of the selected queries could not be calculated.
+  redmine_kanban_migrate: "Run the plugin migration before saving shortcuts: rake redmine:plugins:migrate NAME=redmine_kanban"

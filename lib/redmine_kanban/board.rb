@@ -1,24 +1,77 @@
 # frozen_string_literal: true
 
 module RedmineKanban
+  def self.integer_list(value, limit)
+    values = value.is_a?(Array) ? value : value.to_s.split(',')
+    values.map(&:to_s).select {|item| item.match?(/\A\d+\z/)}.map(&:to_i).uniq.first(limit)
+  end
+
   class Board
     LIMIT = 400
 
-    def initialize(project, params)
+    attr_reader :query_failed
+
+    def initialize(project, params, saved = nil)
       @project = project
-      @params = params
+      @params = params || {}
+      @saved = saved
+      @query_failed = false
     end
 
-    def show_closed?
-      @params[:closed].to_s == '1'
+    def query_ids
+      @query_ids ||= begin
+        raw = configured? ? RedmineKanban.integer_list(@params[:query_ids], 20) : Array(@saved && @saved.query_id_list)
+        allowed = visible_queries.map(&:id)
+        raw.select {|id| allowed.include?(id)}.first(20)
+      end
+    end
+
+    def status_ids
+      @status_ids ||= begin
+        available = available_status_ids
+        chosen = if configured?
+                   RedmineKanban.integer_list(@params[:status_ids], 40)
+                 elsif @saved
+                   @saved.status_id_list
+                 else
+                   []
+                 end
+        chosen = chosen.select {|id| available.include?(id)}
+        chosen = default_status_ids if chosen.empty?
+        chosen
+      end
     end
 
     def statuses
-      @statuses ||= begin
-        found = IssueStatus.where(:id => status_ids).sorted.to_a
+      @statuses ||= IssueStatus.where(:id => status_ids).sorted.to_a
+    end
+
+    def available_statuses
+      @available_statuses ||= begin
+        ids = available_status_ids
+        found = IssueStatus.where(:id => ids).sorted.to_a
         found = IssueStatus.sorted.to_a if found.empty?
-        found.reject!(&:is_closed?) unless show_closed?
         found
+      end
+    end
+
+    def visible_queries
+      @visible_queries ||= begin
+        table = IssueQuery.table_name
+        IssueQuery.visible.
+          where("#{table}.project_id IS NULL OR #{table}.project_id = ?", @project.id).
+          order("#{table}.name ASC").
+          to_a.
+          reject {|query| query.name.to_s == '_'}
+      rescue ActiveRecord::ActiveRecordError
+        []
+      end
+    end
+
+    def selected_queries
+      @selected_queries ||= begin
+        by_id = visible_queries.index_by(&:id)
+        query_ids.map {|id| by_id[id]}.compact
       end
     end
 
@@ -28,8 +81,8 @@ module RedmineKanban
 
     def issues_by_status
       @issues_by_status ||= begin
-        grouped = Hash.new { |hash, key| hash[key] = [] }
-        issues.each { |issue| grouped[issue.status_id] << issue }
+        grouped = Hash.new {|hash, key| hash[key] = []}
+        issues.each {|issue| grouped[issue.status_id] << issue}
         grouped
       end
     end
@@ -38,32 +91,60 @@ module RedmineKanban
       @truncated
     end
 
-    def filters
-      {
-        'tracker_id' => integer_param(:tracker_id),
-        'assigned_to_id' => assigned_param,
-        'priority_id' => integer_param(:priority_id),
-        'fixed_version_id' => integer_param(:fixed_version_id),
-        'q' => query_param,
-        'closed' => (show_closed? ? '1' : nil)
-      }.reject { |_key, value| value.blank? }
+    def differs?
+      return false unless @saved && configured?
+
+      @saved.query_id_list.sort != query_ids.sort || @saved.status_id_list.sort != status_ids.sort
+    end
+
+    def redirect_params
+      @redirect_params ||= begin
+        result = {}
+        board_id = @saved ? @saved.id : @params[:board_id]
+        result[:board_id] = board_id.to_i if board_id.to_s.match?(/\A\d+\z/)
+        result[:configured] = '1'
+        result[:query_ids] = query_ids
+        result[:status_ids] = status_ids
+        result
+      end
     end
 
     private
 
+    def configured?
+      @params[:configured].to_s == '1' || @params[:query_ids].present? || @params[:status_ids].present?
+    end
+
+    def available_status_ids
+      @available_status_ids ||= begin
+        tracker_ids = @project.trackers.map(&:id)
+        ids = []
+        if tracker_ids.any? && defined?(WorkflowTransition)
+          WorkflowTransition.where(:tracker_id => tracker_ids).pluck(:old_status_id, :new_status_id).each do |old_id, new_id|
+            ids << old_id
+            ids << new_id
+          end
+        end
+        ids.concat(@project.issues.unscope(:order).distinct.pluck(:status_id))
+        ids = ids.compact.uniq
+        ids = IssueStatus.pluck(:id) if ids.empty?
+        ids
+      end
+    end
+
+    def default_status_ids
+      open_ids = IssueStatus.where(:id => available_status_ids, :is_closed => false).sorted.pluck(:id)
+      open_ids = available_status_ids if open_ids.empty?
+      open_ids
+    end
+
     def load_issues
       scope = @project.issues.visible
-      scope = scope.open unless show_closed?
-      scope = scope.where(:tracker_id => filters['tracker_id']) if filters['tracker_id']
-      scope = scope.where(:priority_id => filters['priority_id']) if filters['priority_id']
-      scope = scope.where(:fixed_version_id => filters['fixed_version_id']) if filters['fixed_version_id']
-      scope = assigned_scope(scope)
-      if filters['q']
-        scope = scope.where(
-          "LOWER(#{Issue.table_name}.subject) LIKE LOWER(?)",
-          "%#{filters['q']}%"
-        )
+      if selected_queries.any?
+        ids = selected_queries.flat_map {|query| ids_for(query)}.uniq.first(LIMIT)
+        scope = scope.where(:id => ids)
       end
+      scope = scope.where(:status_id => status_ids) if status_ids.any?
       rows = scope.order("#{Issue.table_name}.updated_on DESC").
         includes(:status, :assigned_to, :priority, :tracker, :fixed_version).
         limit(LIMIT + 1).to_a
@@ -77,48 +158,24 @@ module RedmineKanban
       rows
     end
 
-    def assigned_scope(scope)
-      value = filters['assigned_to_id']
-      return scope if value.blank?
-      return scope.where(:assigned_to_id => nil) if value == 'none'
-      return scope.where(:assigned_to_id => ::User.current.id) if value == 'me'
-
-      scope.where(:assigned_to_id => value.to_i)
-    end
-
-    def status_ids
-      tracker_ids = @project.trackers.map(&:id)
-      ids = []
-      if tracker_ids.any?
-        WorkflowTransition.where(:tracker_id => tracker_ids).pluck(:old_status_id, :new_status_id).each do |old_id, new_id|
-          ids << old_id
-          ids << new_id
-        end
+    def ids_for(query)
+      query.project = @project
+      unless query.valid?
+        @query_failed = true
+        return []
       end
-      ids.concat(@project.issues.pluck(:status_id))
-      ids.compact.uniq
-    end
 
-    def integer_param(key)
-      value = @params[key].to_s
-      return nil unless value =~ /\A\d+\z/
-
-      value
-    end
-
-    def assigned_param
-      value = @params[:assigned_to_id].to_s
-      return value if value == 'me' || value == 'none'
-      return value if value =~ /\A\d+\z/
-
-      nil
-    end
-
-    def query_param
-      value = @params[:q].to_s.strip.gsub('%', '').gsub('_', '')
-      return nil if value.blank?
-
-      value.slice(0, 80)
+      relation = if query.respond_to?(:base_scope, true)
+                   query.send(:base_scope)
+                 else
+                   sql = query.statement
+                   scope = Issue.visible.joins(:status, :project)
+                   sql.present? ? scope.where(sql) : scope
+                 end
+      relation.reorder(nil).limit(LIMIT).pluck("#{Issue.table_name}.id")
+    rescue ActiveRecord::StatementInvalid, ::Query::StatementInvalid
+      @query_failed = true
+      []
     end
   end
 end

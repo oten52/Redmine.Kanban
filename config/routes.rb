@@ -1,2 +1,5 @@
 get 'projects/:project_id/kanban', :to => 'redmine_kanban#show'
 post 'projects/:project_id/kanban/move', :to => 'redmine_kanban#move'
+post 'projects/:project_id/kanban/boards', :to => 'redmine_kanban#create'
+post 'projects/:project_id/kanban/boards/:id', :to => 'redmine_kanban#update'
+post 'projects/:project_id/kanban/boards/:id/destroy', :to => 'redmine_kanban#destroy'

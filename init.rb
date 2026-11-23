@@ -7,13 +7,14 @@
 # version. See the LICENSE file for details.
 
 require_relative 'lib/redmine_kanban/board'
+require_relative 'lib/redmine_kanban/saved_board'
 
 Redmine::Plugin.register :redmine_kanban do
   name 'Kanban'
   author 'Niltek Arge'
   author_url 'https://github.com/oten52'
-  description 'Proje menüsüne işlerin durumlarına göre bir Kanban panosu ekler.'
-  version '0.1.0'
+  description 'Sorgu sonucunu durum sütunlarında gösterir. Panolar kaydedilip paylaşılabilir.'
+  version '0.2.0'
   url 'https://github.com/oten52/Redmine.Kanban'
   requires_redmine version_or_higher: '4.2'
 

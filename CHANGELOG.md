@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0
+
+* Filter the board by one or more saved issue queries.
+* Choose which statuses are shown.
+* Save a board as a shortcut, then edit, update or delete it.
+* Share a shortcut privately, with everyone, or with selected roles, including the option for all projects.
+
 ## 0.1.0
 
 * Add a Kanban project tab beside Issues.

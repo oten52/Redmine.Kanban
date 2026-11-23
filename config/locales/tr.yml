@@ -20,3 +20,22 @@ tr:
   redmine_kanban_transition_denied: İş akışı bu durum değişikliğine izin vermiyor.
   redmine_kanban_not_found: İş veya durum bulunamadı.
   redmine_kanban_move_failed: Durum değiştirilemedi.
+  redmine_kanban_queries: Sorgular
+  redmine_kanban_queries_help: Seçilen sorguların güncel sonucu listelenir. Hiçbiri seçilmezse projedeki işler gelir.
+  redmine_kanban_no_queries: Kullanabileceğiniz kayıtlı iş sorgusu yok.
+  redmine_kanban_statuses: Gösterilecek durumlar
+  redmine_kanban_statuses_help: Hiçbiri seçilmezse açık durumlar gösterilir.
+  redmine_kanban_closed_mark: kapalı
+  redmine_kanban_global: Tüm projeler
+  redmine_kanban_shortcuts: Kısayollar
+  redmine_kanban_my_shortcuts: Kısayollarım
+  redmine_kanban_shared: Paylaşılan
+  redmine_kanban_no_shortcuts: Henüz kısayol yok.
+  redmine_kanban_add_shortcut: Kısa yola ekle
+  redmine_kanban_edit_shortcut: Kısayolu düzenle
+  redmine_kanban_save_help: Kayıt, ekrandaki sorgu ve durum seçimini bu kısayolda saklar.
+  redmine_kanban_roles_required: Rol ile paylaşmak için en az bir rol seçin.
+  redmine_kanban_missing: Bu kısayol bulunamadı.
+  redmine_kanban_unsaved: Bu görünüm kayıtlı kısayoldan farklı. Düzenleyip kaydederseniz kısayol güncellenir.
+  redmine_kanban_query_failed: Seçilen sorgulardan biri hesaplanamadı.
+  redmine_kanban_migrate: "Kısayolları kaydetmek için eklenti göçünü çalıştırın: rake redmine:plugins:migrate NAME=redmine_kanban"

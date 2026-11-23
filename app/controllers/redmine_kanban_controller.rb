@@ -67,8 +67,12 @@ class RedmineKanbanController < ApplicationController
       detail_error = apply_detail(issue)
       return fail_move(detail_error) if detail_error
 
+      attachment_error = apply_attachments(issue)
+      return fail_move(attachment_error) if attachment_error
+
       issue.status = status
       unless issue.save
+        discard_saved_attachments(issue)
         return fail_move(issue.errors.full_messages.join(', '))
       end
     end
@@ -309,6 +313,36 @@ class RedmineKanbanController < ApplicationController
       attrs[field] = parsed.nil? ? '' : parsed.to_s
     end
     issue.safe_attributes = attrs unless attrs.empty?
+    nil
+  end
+
+  def apply_attachments(issue)
+    return nil unless detail_requested?
+
+    raw = params[:attachments]
+    return nil if raw.blank?
+
+    issue.save_attachments(raw, User.current)
+    failed = issue.unsaved_attachments
+    if failed.any? || issue.saved_attachments.size > 10
+      discard_saved_attachments(issue)
+      text = failed.map { |item| item.errors.full_messages }.flatten
+      text = text.reject { |message| message.to_s.strip == '' }.uniq
+      return text.join(', ').presence || l(:redmine_kanban_attachment_failed)
+    end
+    nil
+  rescue StandardError
+    discard_saved_attachments(issue)
+    l(:redmine_kanban_attachment_failed)
+  end
+
+  def discard_saved_attachments(issue)
+    return unless issue.respond_to?(:saved_attachments)
+
+    issue.saved_attachments.dup.each do |attachment|
+      attachment.destroy if attachment.respond_to?(:persisted?) && attachment.persisted?
+    end
+  rescue StandardError
     nil
   end
 

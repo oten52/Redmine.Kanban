@@ -6,7 +6,7 @@ Adds a Kanban tab to each project. Columns are issue statuses and cards are issu
 
 ## What's new
 
-* 0.3.0: A switch asks for assignee, notes, dates and done ratio before a status change. See [CHANGELOG](CHANGELOG.md).
+* 0.3.1: The status-change dialog searches assignees and accepts files. See [CHANGELOG](CHANGELOG.md).
 
 ## Features
 
@@ -16,7 +16,7 @@ Adds a Kanban tab to each project. Columns are issue statuses and cards are issu
 * Save the view as a shortcut. Edit, delete and change who can see it the same way as a saved query: only me, any user, or selected roles. A shortcut can also be available on all projects.
 * Shortcuts are listed in the sidebar. Saving uses the same permission as saving queries. Sharing with everyone or with roles uses the public-query permission.
 * Drag a card to change its status. The workflow and the edit permission are checked.
-* Turn on "Ask when the status changes" to edit assignee, notes, dates and done ratio in a dialog. Leave it off to change the status directly.
+* Turn on "Ask when the status changes" to edit assignee, notes, files, dates and done ratio in a dialog. Leave it off to change the status directly.
 * The board shows the 400 most recently updated matching issues.
 
 ## Required Redmine version
@@ -46,7 +46,7 @@ Open a project. The Kanban tab is next to Issues. Select queries and statuses, t
 
 ## Update
 
-0.3.0 does not add a migration. If 0.2.0 is already migrated, pull and restart are enough. The migrate command below is safe to repeat.
+0.3.1 does not add a migration. If 0.2.0 is already migrated, pull and restart are enough. The migrate command below is safe to repeat.
 
 ```bash
 cd /home/niltek/redmine/app/plugins/Redmine.Kanban

@@ -40,16 +40,57 @@
   .kanban-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 0 0 12px; }
   .kanban-switch label { font-weight: 600; margin: 0; }
   .kanban-switch span { color: #667; font-size: 13px; }
-  .kanban-modal { position: fixed; top: 0; right: 0; bottom: 0; left: 0; background: rgba(16, 24, 40, 0.48); z-index: 2000; overflow: auto; }
-  .kanban-modal[hidden] { display: none; }
-  .kanban-dialog { background: #fff; width: 460px; max-width: calc(100% - 32px); margin: 8vh auto 32px; padding: 18px 20px 16px; border-radius: 10px; box-shadow: 0 16px 40px rgba(16, 24, 40, 0.2); }
-  .kanban-dialog h3 { margin: 0 0 6px; }
-  .kanban-dialog label { display: block; margin: 0 0 10px; font-size: 13px; font-weight: 600; }
-  .kanban-dialog input, .kanban-dialog select, .kanban-dialog textarea { display: block; width: 100%; margin-top: 4px; box-sizing: border-box; font-weight: normal; }
-  .kanban-dialog textarea { min-height: 88px; }
-  .kanban-dialog-dates { display: flex; gap: 12px; }
-  .kanban-dialog-dates label { flex: 1; }
-  .kanban-dialog-actions { display: flex; gap: 8px; margin-top: 4px; }
+  #kanban-detail[hidden] { display: none !important; }
+  #kanban-detail:not([hidden]) { display: flex !important; position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 10000; align-items: flex-start; justify-content: center; padding: 40px 16px; background: rgba(15, 23, 42, 0.55); overflow: auto; box-sizing: border-box; }
+  #kanban-detail, #kanban-detail * { box-sizing: border-box; }
+  #kanban-detail form.kanban-dialog { display: flex !important; flex-direction: column; width: 560px; max-width: 100%; max-height: calc(100vh - 80px); margin: 0; padding: 0; background: #fff; color: #1d2733; border: 0; border-radius: 16px; box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28); overflow: hidden; font-family: "Segoe UI", system-ui, sans-serif; font-size: 14px; line-height: 1.4; float: none; }
+  #kanban-detail .kanban-dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 20px 14px; background: #f8fafc; border-bottom: 1px solid #e6e8ee; }
+  #kanban-detail .kanban-kicker { margin: 0 0 4px; color: #5c6b80; font-size: 12px; font-weight: 600; letter-spacing: .02em; }
+  #kanban-detail .kanban-dialog-head h3 { margin: 0; font-size: 16px; line-height: 1.35; font-weight: 600; color: #142033; }
+  #kanban-detail .kanban-close { width: 32px; height: 32px; min-height: 32px; margin: 0; padding: 0; border: 0; border-radius: 8px; background: transparent; color: #526070; font-size: 22px; line-height: 1; cursor: pointer; }
+  #kanban-detail .kanban-close:hover { background: #e8edf5; }
+  #kanban-detail .kanban-dialog-body { overflow: auto; padding: 16px 20px 8px; }
+  #kanban-detail .kanban-move-line { display: flex; align-items: center; gap: 8px; margin: 0 0 16px; padding: 8px 10px; background: #f3f6fb; border-radius: 10px; }
+  #kanban-detail .kanban-pill { display: inline-block; max-width: 42%; padding: 4px 8px; border-radius: 999px; background: #fff; border: 1px solid #d9e0ea; color: #314055; font-size: 12px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #kanban-detail .kanban-pill.is-next { background: #e7efff; border-color: #c5d7fb; color: #1d4ed8; }
+  #kanban-detail .kanban-arrow { color: #8b97a8; }
+  #kanban-detail .kanban-label { display: block; float: none; width: auto; margin: 0 0 6px; padding: 0; text-align: left; color: #3d4b5c; font-size: 12px; font-weight: 700; }
+  #kanban-detail .kanban-block { margin: 0 0 14px; }
+  #kanban-detail .kanban-split { display: flex; gap: 12px; }
+  #kanban-detail .kanban-split .kanban-block { flex: 1; min-width: 0; }
+  #kanban-detail input[type="text"], #kanban-detail input[type="search"], #kanban-detail input[type="number"], #kanban-detail input[type="date"], #kanban-detail textarea { display: block; width: 100%; max-width: none; height: auto; min-height: 38px; margin: 0; padding: 8px 10px; float: none; border: 1px solid #d5dbe3; border-radius: 8px; background: #fff; color: #1d2733; font: inherit; box-shadow: none; }
+  #kanban-detail textarea { min-height: 96px; resize: vertical; }
+  #kanban-detail input:focus, #kanban-detail textarea:focus { border-color: #2f6fed; outline: 2px solid rgba(47, 111, 237, 0.18); outline-offset: 0; }
+  #kanban-detail .kanban-combo { position: relative; }
+  #kanban-detail .kanban-combo-value { display: flex; align-items: center; justify-content: space-between; width: 100%; height: auto; min-height: 38px; margin: 0; padding: 8px 10px; border: 1px solid #d5dbe3; border-radius: 8px; background: #fff; color: #1d2733; font: inherit; text-align: left; cursor: pointer; }
+  #kanban-detail .kanban-combo-value:hover, #kanban-detail .kanban-combo.is-open .kanban-combo-value { border-color: #2f6fed; }
+  #kanban-detail .kanban-combo-caret { color: #6b7788; font-size: 12px; }
+  #kanban-detail .kanban-combo-panel { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 3; padding: 8px; background: #fff; border: 1px solid #d5dbe3; border-radius: 10px; box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16); }
+  #kanban-detail .kanban-combo-panel[hidden] { display: none !important; }
+  #kanban-detail .kanban-combo-list { max-height: 220px; margin-top: 8px; overflow: auto; }
+  #kanban-detail .kanban-person { display: block; width: 100%; height: auto; min-height: 34px; margin: 0; padding: 7px 8px; border: 0; border-radius: 7px; background: transparent; color: #1d2733; font: inherit; text-align: left; cursor: pointer; }
+  #kanban-detail .kanban-person:hover, #kanban-detail .kanban-person.is-active { background: #eef3ff; }
+  #kanban-detail .kanban-person.is-selected { color: #1d4ed8; font-weight: 600; }
+  #kanban-detail .kanban-empty-people { margin: 8px 4px; color: #6b7788; font-size: 13px; }
+  #kanban-detail .kanban-ratio { display: flex; align-items: center; gap: 10px; }
+  #kanban-detail input[type="range"] { flex: 1; width: auto; height: 24px; min-height: 0; margin: 0; padding: 0; border: 0; background: transparent; }
+  #kanban-detail .kanban-ratio input[type="number"] { width: 72px; min-height: 38px; text-align: right; }
+  #kanban-detail .kanban-ratio-text { width: 42px; color: #3d4b5c; font-weight: 600; }
+  #kanban-detail .kanban-drop { position: relative; padding: 16px; border: 1px dashed #b7c3d4; border-radius: 10px; background: #f8fafc; color: #526070; text-align: center; }
+  #kanban-detail .kanban-drop.is-over { border-color: #2f6fed; background: #eef3ff; }
+  #kanban-detail .kanban-drop p { margin: 0; }
+  #kanban-detail .kanban-drop input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; min-height: 0; margin: 0; padding: 0; border: 0; opacity: 0; cursor: pointer; }
+  #kanban-detail .kanban-file-list { list-style: none; margin: 8px 0 0; padding: 0; }
+  #kanban-detail .kanban-file { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 6px; padding: 7px 8px; background: #f4f6f9; border-radius: 8px; }
+  #kanban-detail .kanban-file span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #kanban-detail .kanban-file button { height: auto; min-height: 28px; margin: 0; padding: 4px 8px; border: 0; border-radius: 6px; background: transparent; color: #b42318; font: inherit; cursor: pointer; }
+  #kanban-detail .kanban-detail-error { margin: 0 0 12px; padding: 8px 10px; border-radius: 8px; background: #fef3f2; color: #b42318; }
+  #kanban-detail .kanban-detail-error[hidden] { display: none !important; }
+  #kanban-detail .kanban-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin: 0; padding: 12px 20px 16px; border-top: 1px solid #e6e8ee; background: #fff; }
+  #kanban-detail .kanban-dialog-actions button { height: auto; min-height: 36px; margin: 0; padding: 8px 14px; border-radius: 8px; font: inherit; font-weight: 600; cursor: pointer; }
+  #kanban-detail .kanban-btn-ghost { border: 1px solid #d5dbe3; background: #fff; color: #314055; }
+  #kanban-detail .kanban-btn-primary { border: 1px solid #2458c5; background: #2f6fed; color: #fff; }
+  #kanban-detail .kanban-btn-primary:disabled { opacity: 0.65; cursor: default; }
 </style>
 
 <div class="contextual">
@@ -217,43 +258,81 @@
 </div>
 
 <% if @can_edit %>
-  <div id="kanban-detail" class="kanban-modal" hidden>
+  <div id="kanban-detail" hidden role="dialog" aria-modal="true"
+       data-unassigned="<%= l(:redmine_kanban_unassigned) %>"
+       data-search="<%= l(:redmine_kanban_assignee_search) %>"
+       data-no-match="<%= l(:redmine_kanban_no_match) %>"
+       data-remove-file="<%= l(:redmine_kanban_remove_file) %>"
+       data-file-too-big="<%= l(:redmine_kanban_file_too_big) %>"
+       data-file-limit="<%= l(:redmine_kanban_file_limit) %>"
+       data-saving="<%= l(:redmine_kanban_saving) %>"
+       data-max-bytes="<%= Setting.attachment_max_size.to_i.kilobytes %>">
     <form id="kanban-detail-form" class="kanban-dialog">
-      <h3><%= l(:redmine_kanban_detail_title) %></h3>
-      <p class="kanban-subject" id="kanban-detail-subject"></p>
-      <p><%= l(:redmine_kanban_detail_status) %> <strong id="kanban-detail-status"></strong></p>
-      <label for="kanban-detail-assigned">
-        <%= l(:field_assigned_to) %>
-        <select id="kanban-detail-assigned">
-          <option value=""><%= l(:redmine_kanban_unassigned) %></option>
-          <% @project.assignable_users.each do |principal| %>
-            <option value="<%= principal.id %>"><%= principal.name %></option>
-          <% end %>
-        </select>
-      </label>
-      <label for="kanban-detail-ratio">
-        <%= l(:field_done_ratio) %>
-        <input type="number" id="kanban-detail-ratio" min="0" max="100" step="10">
-      </label>
-      <div class="kanban-dialog-dates">
-        <label for="kanban-detail-start">
-          <%= l(:field_start_date) %>
-          <input type="date" id="kanban-detail-start">
-        </label>
-        <label for="kanban-detail-due">
-          <%= l(:field_due_date) %>
-          <input type="date" id="kanban-detail-due">
-        </label>
+      <div class="kanban-dialog-head">
+        <div>
+          <p class="kanban-kicker" id="kanban-detail-kicker"></p>
+          <h3 id="kanban-detail-subject"></h3>
+        </div>
+        <button type="button" class="kanban-close" id="kanban-detail-close" aria-label="<%= l(:redmine_kanban_cancel) %>">×</button>
       </div>
-      <label for="kanban-detail-notes">
-        <%= l(:field_notes) %>
-        <textarea id="kanban-detail-notes" maxlength="10000"></textarea>
-      </label>
+      <div class="kanban-dialog-body">
+        <div class="kanban-move-line">
+          <span class="kanban-pill" id="kanban-detail-from"></span>
+          <span class="kanban-arrow">→</span>
+          <span class="kanban-pill is-next" id="kanban-detail-status"></span>
+        </div>
+        <p id="kanban-detail-error" class="kanban-detail-error" hidden></p>
+        <div class="kanban-block">
+          <span class="kanban-label"><%= l(:field_assigned_to) %></span>
+          <div class="kanban-combo" id="kanban-assignee">
+            <button type="button" class="kanban-combo-value" id="kanban-assignee-button">
+              <span id="kanban-assignee-label"></span>
+              <span class="kanban-combo-caret">▾</span>
+            </button>
+            <div class="kanban-combo-panel" id="kanban-assignee-panel" hidden>
+              <input type="search" id="kanban-assignee-search" autocomplete="off" placeholder="<%= l(:redmine_kanban_assignee_search) %>">
+              <div class="kanban-combo-list" id="kanban-assignee-list"></div>
+            </div>
+          </div>
+          <input type="hidden" id="kanban-detail-assigned" value="">
+        </div>
+        <div class="kanban-split">
+          <div class="kanban-block">
+            <span class="kanban-label"><%= l(:field_start_date) %></span>
+            <input type="date" id="kanban-detail-start">
+          </div>
+          <div class="kanban-block">
+            <span class="kanban-label"><%= l(:field_due_date) %></span>
+            <input type="date" id="kanban-detail-due">
+          </div>
+        </div>
+        <div class="kanban-block">
+          <span class="kanban-label"><%= l(:field_done_ratio) %></span>
+          <div class="kanban-ratio">
+            <input type="range" id="kanban-detail-range" min="0" max="100" step="10" value="0">
+            <input type="number" id="kanban-detail-ratio" min="0" max="100" step="10" value="0">
+            <span class="kanban-ratio-text" id="kanban-detail-ratio-text">0%</span>
+          </div>
+        </div>
+        <div class="kanban-block">
+          <span class="kanban-label"><%= l(:field_notes) %></span>
+          <textarea id="kanban-detail-notes" maxlength="10000"></textarea>
+        </div>
+        <div class="kanban-block">
+          <span class="kanban-label"><%= l(:redmine_kanban_files) %></span>
+          <div class="kanban-drop" id="kanban-drop">
+            <p><%= l(:redmine_kanban_drop_files) %></p>
+            <input type="file" id="kanban-files" multiple>
+          </div>
+          <ul class="kanban-file-list" id="kanban-file-list"></ul>
+        </div>
+      </div>
       <div class="kanban-dialog-actions">
-        <button type="submit"><%= l(:button_save) %></button>
-        <button type="button" id="kanban-detail-cancel"><%= l(:redmine_kanban_cancel) %></button>
+        <button type="button" class="kanban-btn-ghost" id="kanban-detail-cancel"><%= l(:redmine_kanban_cancel) %></button>
+        <button type="submit" class="kanban-btn-primary" id="kanban-detail-save"><%= l(:button_save) %></button>
       </div>
     </form>
+    <script type="application/json" id="kanban-people"><%= @project.assignable_users.map { |principal| {'id' => principal.id, 'name' => principal.name.to_s} }.to_json %></script>
   </div>
 <% end %>
 
@@ -391,6 +470,9 @@
 
     var detailSwitch = document.getElementById('kanban-detail-switch');
     var detailBox = document.getElementById('kanban-detail');
+    if (detailBox && detailBox.parentNode !== document.body) {
+      document.body.appendChild(detailBox);
+    }
     var detailKey = 'redmine_kanban_detail';
     var pending = null;
     try {
@@ -432,27 +514,205 @@
       return '';
     }
 
-    function ensureAssignee(card) {
-      var select = document.getElementById('kanban-detail-assigned');
-      if (!select) { return; }
-      var extra = select.querySelector('option[data-extra="1"]');
-      if (extra) { extra.parentNode.removeChild(extra); }
+    var people = [];
+    var activePeople = [];
+    var pickedFiles = [];
+    var saving = false;
+    var peopleNode = document.getElementById('kanban-people');
+    if (peopleNode) {
+      try { people = JSON.parse(peopleNode.textContent) || []; } catch (ignore) { people = []; }
+    }
+
+    function detailText(name) {
+      return detailBox ? (detailBox.getAttribute(name) || '') : '';
+    }
+
+    function fold(text) {
+      return String(text || '').toLocaleLowerCase('tr');
+    }
+
+    function setDetailError(text) {
+      var node = document.getElementById('kanban-detail-error');
+      if (!node) { return; }
+      node.textContent = text || '';
+      node.hidden = !text;
+    }
+
+    function setBusy(on) {
+      var button = document.getElementById('kanban-detail-save');
+      if (!button) { return; }
+      if (!button.getAttribute('data-label')) { button.setAttribute('data-label', button.textContent); }
+      button.disabled = !!on;
+      button.textContent = on ? (detailText('data-saving') || button.getAttribute('data-label')) : button.getAttribute('data-label');
+    }
+
+    function setRatio(value) {
+      var number = parseInt(value, 10);
+      if (isNaN(number) || number < 0) { number = 0; }
+      if (number > 100) { number = 100; }
+      var range = document.getElementById('kanban-detail-range');
+      var ratio = document.getElementById('kanban-detail-ratio');
+      var text = document.getElementById('kanban-detail-ratio-text');
+      if (range) { range.value = String(number); }
+      if (ratio) { ratio.value = String(number); }
+      if (text) { text.textContent = number + '%'; }
+    }
+
+    function closePanel() {
+      var panel = document.getElementById('kanban-assignee-panel');
+      var combo = document.getElementById('kanban-assignee');
+      if (panel) { panel.hidden = true; }
+      if (combo) { combo.className = combo.className.replace(' is-open', ''); }
+    }
+
+    function choosePerson(id, name) {
+      var hidden = document.getElementById('kanban-detail-assigned');
+      var label = document.getElementById('kanban-assignee-label');
+      if (hidden) { hidden.value = id || ''; }
+      if (label) { label.textContent = name || detailText('data-unassigned'); }
+      closePanel();
+    }
+
+    function renderPeople(query) {
+      var list = document.getElementById('kanban-assignee-list');
+      var hidden = document.getElementById('kanban-detail-assigned');
+      if (!list) { return; }
+      while (list.firstChild) { list.removeChild(list.firstChild); }
+      var selected = hidden ? hidden.value : '';
+      var needle = fold(query);
+      var shown = 0;
+      var unassigned = detailText('data-unassigned');
+      if (!needle || fold(unassigned).indexOf(needle) !== -1) {
+        list.appendChild(personButton('', unassigned, selected));
+        shown += 1;
+      }
+      for (var i = 0; i < activePeople.length; i++) {
+        var person = activePeople[i];
+        var name = person.name || String(person.id);
+        if (needle && fold(name).indexOf(needle) === -1 && String(person.id).indexOf(needle) === -1) { continue; }
+        if (shown >= 80) { break; }
+        list.appendChild(personButton(String(person.id), name, selected));
+        shown += 1;
+      }
+      if (!list.firstChild) {
+        var empty = document.createElement('p');
+        empty.className = 'kanban-empty-people';
+        empty.textContent = detailText('data-no-match');
+        list.appendChild(empty);
+      }
+    }
+
+    function personButton(id, name, selected) {
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'kanban-person';
+      if (id === selected) { button.className += ' is-selected'; }
+      button.setAttribute('data-id', id);
+      button.textContent = name;
+      button.addEventListener('click', function() { choosePerson(id, name); });
+      return button;
+    }
+
+    function openPanel() {
+      var panel = document.getElementById('kanban-assignee-panel');
+      var combo = document.getElementById('kanban-assignee');
+      var search = document.getElementById('kanban-assignee-search');
+      if (!panel) { return; }
+      if (combo && combo.className.indexOf('is-open') === -1) { combo.className += ' is-open'; }
+      panel.hidden = false;
+      var button = document.getElementById('kanban-assignee-button');
+      if (button) {
+        var rect = button.getBoundingClientRect();
+        panel.style.position = 'fixed';
+        panel.style.left = rect.left + 'px';
+        panel.style.top = (rect.bottom + 4) + 'px';
+        panel.style.width = rect.width + 'px';
+        panel.style.right = 'auto';
+      }
+      if (search) {
+        search.value = '';
+        renderPeople('');
+        search.focus();
+      }
+    }
+
+    function preparePeople(card) {
+      activePeople = people.slice();
       var id = card.getAttribute('data-assigned-to') || '';
+      var name = card.getAttribute('data-assigned-name') || '';
       var found = false;
-      for (var i = 0; i < select.options.length; i++) {
-        if (select.options[i].value === id) { found = true; }
+      for (var i = 0; i < activePeople.length; i++) {
+        if (String(activePeople[i].id) === id) { found = true; }
       }
-      if (id && !found) {
-        var option = document.createElement('option');
-        option.value = id;
-        option.setAttribute('data-extra', '1');
-        option.textContent = card.getAttribute('data-assigned-name') || id;
-        select.appendChild(option);
+      if (id && !found) { activePeople.unshift({id: id, name: name || id}); }
+      var label = name;
+      if (!id) { label = detailText('data-unassigned'); }
+      if (id && !label) {
+        for (var n = 0; n < activePeople.length; n++) {
+          if (String(activePeople[n].id) === id) { label = activePeople[n].name; }
+        }
       }
-      select.value = id;
+      choosePerson(id, label);
+    }
+
+    function fileSize(bytes) {
+      if (bytes < 1024) { return String(bytes) + ' B'; }
+      if (bytes < 1048576) { return Math.round(bytes / 1024) + ' KB'; }
+      return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+
+    function renderFiles() {
+      var list = document.getElementById('kanban-file-list');
+      if (!list) { return; }
+      while (list.firstChild) { list.removeChild(list.firstChild); }
+      for (var i = 0; i < pickedFiles.length; i++) {
+        (function(index) {
+          var item = document.createElement('li');
+          item.className = 'kanban-file';
+          var name = document.createElement('span');
+          name.textContent = pickedFiles[index].name + ' (' + fileSize(pickedFiles[index].size) + ')';
+          var remove = document.createElement('button');
+          remove.type = 'button';
+          remove.textContent = detailText('data-remove-file');
+          remove.addEventListener('click', function() {
+            pickedFiles.splice(index, 1);
+            renderFiles();
+          });
+          item.appendChild(name);
+          item.appendChild(remove);
+          list.appendChild(item);
+        })(i);
+      }
+    }
+
+    function addFiles(fileList) {
+      var max = Number(detailText('data-max-bytes') || '0');
+      var message = '';
+      for (var i = 0; i < fileList.length; i++) {
+        var file = fileList[i];
+        if (!file) { continue; }
+        if (pickedFiles.length >= 10) {
+          message = detailText('data-file-limit');
+          break;
+        }
+        if (max > 0 && file.size > max) {
+          message = detailText('data-file-too-big');
+          continue;
+        }
+        var duplicate = false;
+        for (var j = 0; j < pickedFiles.length; j++) {
+          if (pickedFiles[j].name === file.name && pickedFiles[j].size === file.size && pickedFiles[j].lastModified === file.lastModified) {
+            duplicate = true;
+          }
+        }
+        if (!duplicate) { pickedFiles.push(file); }
+      }
+      renderFiles();
+      setDetailError(message);
     }
 
     function askDetail(card, statusId, from, column, selectEl) {
+      if (saving) { return; }
       if (pending && pending.selectEl && pending.from && pending.selectEl !== selectEl) {
         pending.selectEl.value = pending.from.getAttribute('data-status-id');
       }
@@ -464,28 +724,44 @@
         selectEl: selectEl
       };
       var subject = card.querySelector('.kanban-subject');
+      var tracker = card.querySelector('.kanban-tracker');
+      var idLink = card.querySelector('.kanban-card-top a');
       var subjectNode = document.getElementById('kanban-detail-subject');
+      var kicker = document.getElementById('kanban-detail-kicker');
       var statusNode = document.getElementById('kanban-detail-status');
+      var fromNode = document.getElementById('kanban-detail-from');
       if (subjectNode) { subjectNode.textContent = subject ? subject.textContent : ''; }
+      if (kicker) {
+        kicker.textContent = ((tracker ? tracker.textContent : '') + ' ' + (idLink ? idLink.textContent : '')).replace(/^\s+|\s+$/g, '');
+      }
       if (statusNode) { statusNode.textContent = statusLabel(column, selectEl); }
-      ensureAssignee(card);
-      var ratio = document.getElementById('kanban-detail-ratio');
+      if (fromNode) { fromNode.textContent = statusLabel(from, null); }
+      preparePeople(card);
+      closePanel();
+      setRatio(card.getAttribute('data-done-ratio') || '0');
       var start = document.getElementById('kanban-detail-start');
       var due = document.getElementById('kanban-detail-due');
       var notes = document.getElementById('kanban-detail-notes');
-      if (ratio) { ratio.value = card.getAttribute('data-done-ratio') || '0'; }
+      var fileInput = document.getElementById('kanban-files');
       if (start) { start.value = card.getAttribute('data-start-date') || ''; }
       if (due) { due.value = card.getAttribute('data-due-date') || ''; }
       if (notes) { notes.value = ''; }
+      pickedFiles = [];
+      renderFiles();
+      if (fileInput) { fileInput.value = ''; }
+      setDetailError('');
       detailBox.hidden = false;
       if (notes) { notes.focus(); }
     }
 
     function closeDetail(resetSelect) {
+      if (saving) { return; }
       if (resetSelect && pending && pending.selectEl && pending.from) {
         pending.selectEl.value = pending.from.getAttribute('data-status-id');
       }
       pending = null;
+      pickedFiles = [];
+      closePanel();
       if (detailBox) { detailBox.hidden = true; }
     }
 
@@ -511,10 +787,7 @@
       var name = card.querySelector('.kanban-meta span');
       var assignedId = data && data.assigned_to_id ? String(data.assigned_to_id) : '';
       var assignedName = data && data.assigned_to_name ? data.assigned_to_name : '';
-      if (!assignedName) {
-        var blank = document.querySelector('#kanban-detail-assigned option[value=""]');
-        assignedName = blank ? blank.text : '';
-      }
+      if (!assignedName) { assignedName = detailText('data-unassigned'); }
       card.setAttribute('data-assigned-to', assignedId);
       card.setAttribute('data-assigned-name', data && data.assigned_to_name ? data.assigned_to_name : '');
       if (name) { name.textContent = assignedName; }
@@ -527,16 +800,16 @@
 
     function confirmDetail(event) {
       event.preventDefault();
-      if (!pending || !pending.card) { return; }
+      if (saving || !pending || !pending.card) { return; }
       var item = pending;
       var assigned = document.getElementById('kanban-detail-assigned');
       var ratio = document.getElementById('kanban-detail-ratio');
       var start = document.getElementById('kanban-detail-start');
       var due = document.getElementById('kanban-detail-due');
       var notes = document.getElementById('kanban-detail-notes');
-      var previous = placeCard(item);
-      pending = null;
-      detailBox.hidden = true;
+      setDetailError('');
+      saving = true;
+      setBusy(true);
       if (notice) { notice.style.display = 'none'; }
       var body = new FormData();
       body.append(tokenName, token);
@@ -548,24 +821,104 @@
       body.append('start_date', start ? start.value : '');
       body.append('due_date', due ? due.value : '');
       body.append('notes', notes ? notes.value : '');
+      for (var f = 0; f < pickedFiles.length; f++) {
+        body.append('attachments[' + String(f + 1) + '][file]', pickedFiles[f], pickedFiles[f].name);
+      }
       send(body).then(function(data) {
+        placeCard(item);
         if (item.card.parentNode) { paintCard(item.card, item.statusId, data); }
+        saving = false;
+        setBusy(false);
+        closeDetail(false);
       }).catch(function(error) {
-        if (previous) { previous.appendChild(item.card); }
-        refresh(item.from);
-        refresh(item.column);
-        if (item.selectEl && item.from) {
-          item.selectEl.value = item.from.getAttribute('data-status-id');
-        }
-        showError(error.message);
+        saving = false;
+        setBusy(false);
+        setDetailError(error.message || '');
       });
     }
 
     var detailForm = document.getElementById('kanban-detail-form');
     var detailCancel = document.getElementById('kanban-detail-cancel');
+    var detailClose = document.getElementById('kanban-detail-close');
+    var assigneeButton = document.getElementById('kanban-assignee-button');
+    var assigneeSearch = document.getElementById('kanban-assignee-search');
+    var ratioInput = document.getElementById('kanban-detail-ratio');
+    var rangeInput = document.getElementById('kanban-detail-range');
+    var fileInput = document.getElementById('kanban-files');
+    var dropZone = document.getElementById('kanban-drop');
     if (detailForm) { detailForm.addEventListener('submit', confirmDetail); }
-    if (detailCancel) {
-      detailCancel.addEventListener('click', function() { closeDetail(true); });
+    if (detailCancel) { detailCancel.addEventListener('click', function() { closeDetail(true); }); }
+    if (detailClose) { detailClose.addEventListener('click', function() { closeDetail(true); }); }
+    if (assigneeButton) {
+      assigneeButton.addEventListener('click', function() {
+        var panel = document.getElementById('kanban-assignee-panel');
+        if (panel && !panel.hidden) { closePanel(); } else { openPanel(); }
+      });
+    }
+    if (assigneeSearch) {
+      assigneeSearch.addEventListener('input', function() { renderPeople(assigneeSearch.value); });
+      assigneeSearch.addEventListener('keydown', function(event) {
+        var list = document.getElementById('kanban-assignee-list');
+        if (!list) { return; }
+        var buttons = list.querySelectorAll('.kanban-person');
+        var current = -1;
+        for (var i = 0; i < buttons.length; i++) {
+          if ((' ' + buttons[i].className + ' ').indexOf(' is-active ') !== -1) { current = i; }
+        }
+        if (event.key === 'ArrowDown' || event.keyCode === 40) {
+          event.preventDefault();
+          var next = current + 1;
+          if (next >= buttons.length) { next = 0; }
+          for (var n = 0; n < buttons.length; n++) {
+            buttons[n].className = buttons[n].className.replace(' is-active', '');
+          }
+          if (buttons[next]) {
+            buttons[next].className += ' is-active';
+            if (buttons[next].scrollIntoView) { buttons[next].scrollIntoView(false); }
+          }
+        } else if (event.key === 'ArrowUp' || event.keyCode === 38) {
+          event.preventDefault();
+          var prev = current - 1;
+          if (prev < 0) { prev = buttons.length - 1; }
+          for (var p = 0; p < buttons.length; p++) {
+            buttons[p].className = buttons[p].className.replace(' is-active', '');
+          }
+          if (buttons[prev]) {
+            buttons[prev].className += ' is-active';
+            if (buttons[prev].scrollIntoView) { buttons[prev].scrollIntoView(false); }
+          }
+        } else if (event.key === 'Enter' || event.keyCode === 13) {
+          event.preventDefault();
+          var picked = current >= 0 ? buttons[current] : buttons[0];
+          if (picked) { choosePerson(picked.getAttribute('data-id') || '', picked.textContent); }
+        }
+      });
+    }
+    if (ratioInput) { ratioInput.addEventListener('input', function() { setRatio(ratioInput.value); }); }
+    if (rangeInput) { rangeInput.addEventListener('input', function() { setRatio(rangeInput.value); }); }
+    if (fileInput) {
+      fileInput.addEventListener('change', function() {
+        addFiles(fileInput.files || []);
+        fileInput.value = '';
+      });
+    }
+    var dialogBody = detailBox ? detailBox.querySelector('.kanban-dialog-body') : null;
+    if (dialogBody) {
+      dialogBody.addEventListener('scroll', function() { closePanel(); });
+    }
+    if (dropZone) {
+      dropZone.addEventListener('dragover', function(event) {
+        event.preventDefault();
+        if (dropZone.className.indexOf('is-over') === -1) { dropZone.className += ' is-over'; }
+      });
+      dropZone.addEventListener('dragleave', function() {
+        dropZone.className = dropZone.className.replace(' is-over', '');
+      });
+      dropZone.addEventListener('drop', function(event) {
+        event.preventDefault();
+        dropZone.className = dropZone.className.replace(' is-over', '');
+        if (event.dataTransfer) { addFiles(event.dataTransfer.files || []); }
+      });
     }
     if (detailBox) {
       detailBox.addEventListener('click', function(event) {
@@ -574,7 +927,14 @@
     }
     document.addEventListener('keydown', function(event) {
       if (!detailBox || detailBox.hidden) { return; }
-      if (event.key === 'Escape' || event.keyCode === 27) { closeDetail(true); }
+      if (event.key !== 'Escape' && event.keyCode !== 27) { return; }
+      var panel = document.getElementById('kanban-assignee-panel');
+      if (panel && !panel.hidden) {
+        closePanel();
+        event.preventDefault();
+        return;
+      }
+      closeDetail(true);
     });
 
     board.addEventListener('dragstart', function(event) {

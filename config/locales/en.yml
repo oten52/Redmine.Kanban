@@ -16,7 +16,16 @@ en:
   redmine_kanban_empty: This column is empty
   redmine_kanban_help: Drag a card to another column, or choose a status and move it.
   redmine_kanban_detail_switch: Ask when the status changes
-  redmine_kanban_detail_help: "When on, assignee, notes, dates and done ratio are asked. When off, the status changes directly."
+  redmine_kanban_detail_help: "When on, assignee, notes, files, dates and done ratio are asked. When off, the status changes directly."
+  redmine_kanban_assignee_search: Search assignees
+  redmine_kanban_no_match: No matching person
+  redmine_kanban_files: Files
+  redmine_kanban_drop_files: Choose files or drop them here
+  redmine_kanban_remove_file: Remove
+  redmine_kanban_file_too_big: The file is larger than allowed.
+  redmine_kanban_file_limit: At most 10 files can be added.
+  redmine_kanban_attachment_failed: The file could not be added.
+  redmine_kanban_saving: Saving
   redmine_kanban_detail_title: Status change
   redmine_kanban_detail_status: New status
   redmine_kanban_cancel: Cancel

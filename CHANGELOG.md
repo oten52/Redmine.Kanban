@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1
+
+* Show the status-change fields in a dialog that stays above the board.
+* Search the assignee list.
+* Add files to the note. They are stored on the issue with that update.
+
 ## 0.3.0
 
 * Add a switch that asks for assignee, notes, dates and done ratio before a status change.

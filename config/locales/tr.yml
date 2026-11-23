@@ -16,7 +16,16 @@ tr:
   redmine_kanban_empty: Bu sütun boş
   redmine_kanban_help: Kartı başka bir sütuna sürükleyin veya listeden durum seçip taşıyın.
   redmine_kanban_detail_switch: Durum değişirken sor
-  redmine_kanban_detail_help: "Açıkken atanan, not, tarihler ve tamamlanma oranı sorulur. Kapalıyken durum doğrudan değişir."
+  redmine_kanban_detail_help: "Açıkken atanan, not, dosya, tarihler ve tamamlanma oranı sorulur. Kapalıyken durum doğrudan değişir."
+  redmine_kanban_assignee_search: Atanan ara
+  redmine_kanban_no_match: Eşleşen kişi yok
+  redmine_kanban_files: Dosyalar
+  redmine_kanban_drop_files: Dosya seçin veya buraya bırakın
+  redmine_kanban_remove_file: Kaldır
+  redmine_kanban_file_too_big: Dosya izin verilen boyuttan büyük.
+  redmine_kanban_file_limit: En fazla 10 dosya eklenebilir.
+  redmine_kanban_attachment_failed: Dosya eklenemedi.
+  redmine_kanban_saving: Kaydediliyor
   redmine_kanban_detail_title: Durum değişikliği
   redmine_kanban_detail_status: Yeni durum
   redmine_kanban_cancel: Vazgeç

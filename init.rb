@@ -14,7 +14,7 @@ Redmine::Plugin.register :redmine_kanban do
   author 'Niltek Arge'
   author_url 'https://github.com/oten52'
   description 'Sorgu sonucunu durum sütunlarında gösterir. Panolar kaydedilip paylaşılabilir.'
-  version '0.3.0'
+  version '0.3.1'
   url 'https://github.com/oten52/Redmine.Kanban'
   requires_redmine version_or_higher: '4.2'
 
